@@ -28,13 +28,15 @@ export class TorrentSearchPipe implements PipeTransform {
     };
   }
 
-  // Accept an optional label to filter by (null/undefined = no label filter)
+  // Accept an optional label to filter by (null/undefined = no label filter; '' = filter "no label")
   transform<T extends LabelledTorrent>(values: Array<T>, term: string, label?: string | null): Array<T> {
-    if (!values || !Array.isArray(values) || !term && !label) {
-      // If no term and no label just return values
-      if (!term && !label) {
-        return values;
-      }
+    if (!values || !Array.isArray(values)) {
+      return values;
+    }
+
+    // If no search term and label is null/undefined => no filtering (All)
+    if (!term && (label === null || typeof label === 'undefined')) {
+      return values;
     }
 
     let results = values;
@@ -44,8 +46,13 @@ export class TorrentSearchPipe implements PipeTransform {
       results = results.filter(predicate);
     }
 
-    if (label) {
-      results = results.filter(t => (t.Label || '') === label);
+    if (label !== null && typeof label !== 'undefined') {
+      // '' means "No label" (torrents where Label is empty or unset)
+      if (label === '') {
+        results = results.filter(t => !(t.Label && t.Label.length));
+      } else {
+        results = results.filter(t => (t.Label || '') === label);
+      }
     }
 
     return results;

@@ -21,10 +21,14 @@
   </t-breakpoint-overlay>
 
 
-  <t-torrent-search (search)="searchText = $event"></t-torrent-search>
+  <div class="t-search-field">
+    <label class="t-field-label" for="torrent-search">Search</label>
+    <t-torrent-search id="torrent-search" (search)="searchText = $event"></t-torrent-search>
+  </div>
 
   <t-breakpoint-overlay icon="fas fa-filter" [contentActivated]="(get$ | async) !== null" styleClass="t-filter-overlay">
     <div class="t-sort-option">
+      <label class="t-field-label">Sort</label>
       <p-dropdown class="t-filter-input" [options]="sortOptions" appendTo="body"
                   [(ngModel)]="sortByField" placeholder="Sort"></p-dropdown>
       <button pButton pRipple (click)="sortReverse = !sortReverse" type="button" class="t-sort-button"
@@ -33,12 +37,18 @@
       ></button>
     </div>
 
-    <p-dropdown class="t-filter-input" [options]="filterStatesOptions" appendTo="body"
-                (onChange)="get$.next($event.value)" placeholder="State"></p-dropdown>
+    <div class="t-filter-row">
+      <label class="t-field-label">State</label>
+      <p-dropdown class="t-filter-input" [options]="filterStatesOptions" appendTo="body"
+                  (onChange)="get$.next($event.value)" placeholder="State"></p-dropdown>
+    </div>
 
     <!-- New: Label dropdown -->
-    <p-dropdown class="t-filter-input" [options]="labelOptions" appendTo="body"
-                [(ngModel)]="selectedLabel" placeholder="Label"></p-dropdown>
+    <div class="t-filter-row">
+      <label class="t-field-label">Label</label>
+      <p-dropdown class="t-filter-input" [options]="labelOptions" appendTo="body"
+                  [(ngModel)]="selectedLabel" placeholder="Label"></p-dropdown>
+    </div>
 
   </t-breakpoint-overlay>
 </div>

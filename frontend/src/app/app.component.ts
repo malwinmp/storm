@@ -88,7 +88,8 @@ export class AppComponent {
   // New: label filtering state & options
   selectedLabel: string | null = null;
   labelOptions: SelectItem<string | null>[] = [
-    { label: 'All', value: null }
+    { label: 'All', value: null },
+    { label: 'No label', value: '' }
   ];
 
   searchText: string;
@@ -195,17 +196,36 @@ export class AppComponent {
         const [onlyStateInView] = statesInView.size === 1 ? statesInView : [];
         this.stateInView = onlyStateInView || null;
 
-        // Populate labels dynamically from API
-        this.api.labels().subscribe(labels => {
-          const opts: SelectItem<string | null>[] = [{label: 'All', value: null}];
-          labels.sort().forEach(l => opts.push({label: l, value: l}));
+        // Populate labels from the current view and only update when changed.
+        // Keep "All" (null) and "No label" ('') options always present.
+        const labelsInView = Array.from(new Set(
+          this.torrents
+            .map(t => t.Label)
+            .filter(l => !!l && l.length > 0)
+        )).sort();
+
+        const prevLabels = (this.labelOptions || [])
+          .filter(o => o.value !== null && o.value !== '')
+          .map(o => o.value as string)
+          .slice()
+          .sort();
+
+        const areEqual = prevLabels.length === labelsInView.length &&
+          prevLabels.every((v, i) => v === labelsInView[i]);
+
+        if (!areEqual) {
+          const opts: SelectItem<string | null>[] = [
+            {label: 'All', value: null},
+            {label: 'No label', value: ''},
+          ];
+          labelsInView.forEach(l => opts.push({label: l, value: l}));
           this.labelOptions = opts;
 
-          // Clear selectedLabel if it no longer exists
-          if (this.selectedLabel && labels.indexOf(this.selectedLabel) === -1) {
+          // Clear selectedLabel if it no longer exists (but preserve "No label" === '')
+          if (this.selectedLabel !== null && this.selectedLabel !== '' && labelsInView.indexOf(this.selectedLabel) === -1) {
             this.selectedLabel = null;
           }
-        });
+        }
       }
     );
   }

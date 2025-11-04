@@ -85,6 +85,12 @@ export class AppComponent {
     }
   ];
 
+  // New: label filtering state & options
+  selectedLabel: string | null = null;
+  labelOptions: SelectItem<string | null>[] = [
+    { label: 'All', value: null }
+  ];
+
   searchText: string;
 
   // All torrent hashes within the current view
@@ -188,6 +194,18 @@ export class AppComponent {
         const statesInView = new Set(this.torrents.map(t => t.State));
         const [onlyStateInView] = statesInView.size === 1 ? statesInView : [];
         this.stateInView = onlyStateInView || null;
+
+        // Populate labels dynamically from API
+        this.api.labels().subscribe(labels => {
+          const opts: SelectItem<string | null>[] = [{label: 'All', value: null}];
+          labels.sort().forEach(l => opts.push({label: l, value: l}));
+          this.labelOptions = opts;
+
+          // Clear selectedLabel if it no longer exists
+          if (this.selectedLabel && labels.indexOf(this.selectedLabel) === -1) {
+            this.selectedLabel = null;
+          }
+        });
       }
     );
   }

@@ -35,6 +35,11 @@
 
     <p-dropdown class="t-filter-input" [options]="filterStatesOptions" appendTo="body"
                 (onChange)="get$.next($event.value)" placeholder="State"></p-dropdown>
+
+    <!-- New: Label dropdown -->
+    <p-dropdown class="t-filter-input" [options]="labelOptions" appendTo="body"
+                [(ngModel)]="selectedLabel" placeholder="Label"></p-dropdown>
+
   </t-breakpoint-overlay>
 </div>
 
@@ -52,7 +57,7 @@
   </div>
 </ng-template>
 
-<ng-container *ngIf="torrents | torrentSearch: searchText as result; else displayNotLoaded">
+<ng-container *ngIf="torrents | torrentSearch: searchText : selectedLabel as result; else displayNotLoaded">
   <div class="layout-content">
     <div class="p-grid">
       <div class="p-col-12"

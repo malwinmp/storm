@@ -28,13 +28,27 @@ export class TorrentSearchPipe implements PipeTransform {
     };
   }
 
-  transform<T extends LabelledTorrent>(values: Array<T>, term: string): Array<T> {
-    if (!values || !Array.isArray(values) || !term) {
-      return values;
+  // Accept an optional label to filter by (null/undefined = no label filter)
+  transform<T extends LabelledTorrent>(values: Array<T>, term: string, label?: string | null): Array<T> {
+    if (!values || !Array.isArray(values) || !term && !label) {
+      // If no term and no label just return values
+      if (!term && !label) {
+        return values;
+      }
     }
 
-    const predicate = this.filter(term.toLowerCase());
-    return values.filter(predicate);
+    let results = values;
+
+    if (term) {
+      const predicate = this.filter(term.toLowerCase());
+      results = results.filter(predicate);
+    }
+
+    if (label) {
+      results = results.filter(t => (t.Label || '') === label);
+    }
+
+    return results;
   }
 
 }

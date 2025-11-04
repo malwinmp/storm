@@ -16,7 +16,7 @@ type OptionalState = State | null;
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  sortByField: keyof Torrent = null;
+  sortByField: keyof Torrent = 'TimeAdded';
   sortReverse = false;
 
   sortOptions: SelectItem<keyof Torrent>[] = [

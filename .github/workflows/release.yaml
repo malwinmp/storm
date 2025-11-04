@@ -17,7 +17,7 @@ jobs:
           cd frontend
           npm install
           npm run build:prod
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist/
@@ -39,7 +39,7 @@ jobs:
             goos: windows
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist
@@ -64,7 +64,7 @@ jobs:
     needs: compile-frontend
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist

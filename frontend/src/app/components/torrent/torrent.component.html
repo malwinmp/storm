@@ -63,6 +63,12 @@
       </div>
 
       <div class="t-controls">
+        <t-file-picker-overlay #filePicker [hash]="hash" [torrent]="torrent"
+                               (prioritiesChanged)="onPrioritiesChanged($event)"></t-file-picker-overlay>
+        <button pButton pRipple (click)="filePicker.toggle($event)" type="button" icon="far fa-folder-open"
+                class="p-button-text"
+                pTooltip="Select Files"></button>
+
         <button pButton pRipple (click)="onChangeState()" type="button"
                 [icon]="torrent.State == 'Paused' ? 'fas fa-play' : 'fas fa-pause'"
                 class="p-button-text"

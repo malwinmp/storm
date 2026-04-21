@@ -53,6 +53,7 @@ import {MultiSelectModule} from 'primeng/multiselect';
 import { ActivityMarkerComponent } from './components/activity-marker/activity-marker.component';
 import { ApiKeyDialogComponent } from './components/api-key-dialog/api-key-dialog.component';
 import { SessionStatusComponent } from './components/session-status/session-status.component';
+import { FilePickerOverlayComponent } from './components/file-picker-overlay/file-picker-overlay.component';
 
 // @ts-ignore
 @NgModule({
@@ -78,6 +79,7 @@ import { SessionStatusComponent } from './components/session-status/session-stat
     ActivityMarkerComponent,
     ApiKeyDialogComponent,
     SessionStatusComponent,
+    FilePickerOverlayComponent,
   ],
   imports: [
     BrowserModule,

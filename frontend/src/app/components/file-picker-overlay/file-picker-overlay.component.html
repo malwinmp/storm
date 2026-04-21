@@ -1,0 +1,20 @@
+<p-overlayPanel #overlay appendTo="body" styleClass="t-file-picker-panel">
+  <ng-template pTemplate>
+    <p-progressSpinner *ngIf="processing"></p-progressSpinner>
+    <div *ngIf="!processing" class="t-file-picker">
+      <div class="t-file-picker-header">Files</div>
+      <div class="t-file-list" *ngIf="torrent?.Files?.length; else noFiles">
+        <div class="t-file-item" *ngFor="let file of torrent.Files; let i = index">
+          <p-checkbox [(ngModel)]="fileChecked[i]" [binary]="true"
+                      [label]="fileName(file)"></p-checkbox>
+          <span class="t-file-size">{{file.Size | filesize}}</span>
+        </div>
+      </div>
+      <ng-template #noFiles>
+        <div class="t-no-files">No file information available</div>
+      </ng-template>
+      <button pButton pRipple (click)="onApply()" type="button" label="Apply"
+              class="p-button t-apply-button" [disabled]="!torrent?.Files?.length"></button>
+    </div>
+  </ng-template>
+</p-overlayPanel>

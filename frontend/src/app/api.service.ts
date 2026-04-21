@@ -74,10 +74,17 @@ export interface Torrent {
   TrackerStatus: string;
   UploadPayloadRate: number;
 
-// Files:         []File
+  Files: TorrentFile[];
 // Peers:         []Peer
   FilePriorities: number[];
   FileProgress: number[];
+}
+
+export interface TorrentFile {
+  Index: number;
+  Size: number;
+  Offset: number;
+  Path: string;
 }
 
 export interface Label {
@@ -111,6 +118,7 @@ export interface TorrentOptions {
   MoveCompleted?: boolean;
   MoveCompletedPath?: string;
   AddPaused?: boolean;
+  FilePriorities?: number[];
 }
 
 export interface AddTorrent {
@@ -422,5 +430,16 @@ export class ApiService {
    */
   public setTorrentLabel(id: string, req: SetTorrentLabelRequest): Observable<void> {
     return this.http.post<void>(this.url(`torrent/${id}/label`), req);
+  }
+
+  /**
+   * Updates the options of a torrent
+   * @param id
+   * The torrent ID
+   * @param options
+   * The torrent options to set
+   */
+  public setTorrentOptions(id: string, options: TorrentOptions): Observable<void> {
+    return this.http.put<void>(this.url(`torrent/${id}`), options);
   }
 }

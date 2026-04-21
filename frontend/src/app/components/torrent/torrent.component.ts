@@ -3,6 +3,8 @@ import {ApiService, Torrent} from '../../api.service';
 import {Observable} from 'rxjs';
 import {switchMap, take} from 'rxjs/operators';
 
+const PRIORITY_SKIP = 0;
+
 @Component({
   selector: 't-torrent',
   templateUrl: './torrent.component.html',
@@ -18,6 +20,16 @@ export class TorrentComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  get selectedSize(): number {
+    if (!this.torrent?.Files?.length || !this.torrent?.FilePriorities?.length) {
+      return this.torrent?.TotalSize || 0;
+    }
+    return this.torrent.Files.reduce((sum, file, i) => {
+      const priority = this.torrent.FilePriorities[i];
+      return priority !== PRIORITY_SKIP ? sum + file.Size : sum;
+    }, 0);
   }
 
   private refreshAfter(action: Observable<any>): void {
@@ -44,5 +56,12 @@ export class TorrentComponent implements OnInit {
     }
 
     this.onPause();
+  }
+
+  public onPrioritiesChanged(priorities: number[]): void {
+    this.torrent = {
+      ...this.torrent,
+      FilePriorities: priorities,
+    };
   }
 }

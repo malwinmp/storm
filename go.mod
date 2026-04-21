@@ -1,9 +1,9 @@
-module github.com/relvacode/storm
+module github.com/malwinmp/storm
 
 go 1.17
 
 require (
-	github.com/malwinmp/go-libdeluge v0.6.1
+	github.com/malwinmp/go-libdeluge v0.6.2
 	github.com/gorilla/mux v1.8.0
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/spf13/afero v1.6.0

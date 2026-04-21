@@ -97,5 +97,5 @@ In a separate terminal you can now start the main Storm binary in development mo
 In development mode, instead of serving the frontend from the binary embedded source it will instead serve directly from the filesystem.
 
 ```
-go run github.com/relvacode/storm/cmd/storm --listen=127.0.0.1:8221 --dev-mode [OPTIONS...]
+go run github.com/malwinmp/storm/cmd/storm --listen=127.0.0.1:8221 --dev-mode [OPTIONS...]
 ```

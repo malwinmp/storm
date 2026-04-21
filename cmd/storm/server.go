@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	deluge "github.com/gdm85/go-libdeluge"
+	deluge "github.com/malwinmp/go-libdeluge"
 	"github.com/jessevdk/go-flags"
 	storm "github.com/relvacode/storm"
 	"go.uber.org/zap"

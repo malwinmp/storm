@@ -3,7 +3,7 @@ package storm
 import (
 	"context"
 	"errors"
-	deluge "github.com/gdm85/go-libdeluge"
+	deluge "github.com/malwinmp/go-libdeluge"
 	"go.uber.org/zap"
 	"sync"
 	"time"

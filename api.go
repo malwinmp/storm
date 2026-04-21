@@ -4,7 +4,7 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
-	deluge "github.com/gdm85/go-libdeluge"
+	deluge "github.com/malwinmp/go-libdeluge"
 	"github.com/gorilla/mux"
 	"github.com/spf13/afero"
 	"go.uber.org/zap"

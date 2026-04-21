@@ -4,7 +4,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
-	deluge "github.com/gdm85/go-libdeluge"
+	deluge "github.com/malwinmp/go-libdeluge"
 	"net/http"
 	"sort"
 )

@@ -1,7 +1,7 @@
 package storm
 
 import (
-	deluge "github.com/gdm85/go-libdeluge"
+	deluge "github.com/malwinmp/go-libdeluge"
 	"github.com/gorilla/mux"
 	"net/http"
 )

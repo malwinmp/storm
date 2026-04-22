@@ -1,3 +1,9 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .p-menubar {
   padding: .5rem 1rem;
   position: sticky;
@@ -20,8 +26,9 @@
 
 .layout-content {
   padding: 2rem;
-  padding-bottom: .5rem;
+  padding-bottom: 1.5rem;
   background-color: var(--surface-b);
+  flex: 1;
 }
 
 ::ng-deep .t-button-overlay {
@@ -58,7 +65,7 @@
 
   .layout-content {
     padding: 1rem;
-    padding-bottom: .5rem;
+    padding-bottom: 1.5rem;
   }
 }
 
@@ -112,7 +119,9 @@ t-breakpoint-overlay {
 }
 
 .t-bottom-bar {
+  margin-top: auto;
   position: sticky;
   bottom: 0;
   width: 100%;
+  z-index: 1;
 }

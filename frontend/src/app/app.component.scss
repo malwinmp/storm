@@ -20,6 +20,7 @@
 
 .layout-content {
   padding: 2rem;
+  padding-bottom: .5rem;
   background-color: var(--surface-b);
 }
 
@@ -57,6 +58,7 @@
 
   .layout-content {
     padding: 1rem;
+    padding-bottom: .5rem;
   }
 }
 
@@ -110,7 +112,7 @@ t-breakpoint-overlay {
 }
 
 .t-bottom-bar {
-  position: fixed;
+  position: sticky;
   bottom: 0;
   width: 100%;
 }

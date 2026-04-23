@@ -27,7 +27,7 @@ docker run --name storm \
   -e DELUGE_RPC_HOSTNAME=deluge \
   -e DELUGE_RPC_USERNAME=username \
   -e DELUGE_RPC_PASSWORD=password \
-  ghcr.io/relvacode/storm
+  ghcr.io/malwinmp/storm
 ```
 
 

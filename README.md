@@ -33,6 +33,24 @@ docker run --name storm \
 
 The recommended way to run Storm is with a Docker image. 
 
+To build an image from this repository, run:
+
+```
+docker build -t storm:local .
+```
+
+Then start it on the same Docker network as Deluge:
+
+```
+docker run --name storm \
+  --network deluge \
+  -p 8221:8221 \
+  -e DELUGE_RPC_HOSTNAME=deluge \
+  -e DELUGE_RPC_USERNAME=username \
+  -e DELUGE_RPC_PASSWORD=password \
+  storm:local
+```
+
 You'll need a Deluge container running with a valid [auth configuration](https://dev.deluge-torrent.org/wiki/UserGuide/Authentication). 
 Storm needs a way to contact the Deluge RPC daemon so it's best that you create a [Docker network](https://docs.docker.com/engine/tutorials/networkingcontainers/) and attach the Storm container to that network.
 
@@ -74,7 +92,7 @@ Note that in version 2, different RPC users are not able to see torrents created
 
 #### Development
 
-The application is split into two parts, the frontend Angular code and the backend Go API adapter.
+The application is split into two parts: the React/Vite frontend and the backend Go API adapter.
 
 The backend API is presented as an HTTP REST api which talks directly to the Deluge RPC daemon.
 It also has the frontend code embedded directly into the binary so the application can be distributed as a single binary.
@@ -86,15 +104,16 @@ cd frontend
 npm install
 ```
 
-Then start the Angular build server in watch mode. This will output the frontend distributable into `frontend/dist` and watch for changes.
+Then start the Vite development server. It proxies `/api` requests to the local Storm backend at `127.0.0.1:8221`.
 
 ```
 cd frontend
-npm run build -- --watch --configuration=development
+npm run start
 ```
 
-In a separate terminal you can now start the main Storm binary in development mode.
-In development mode, instead of serving the frontend from the binary embedded source it will instead serve directly from the filesystem.
+To produce the frontend bundle embedded in the Go binary, run `npm run build` from `frontend`. The bundle is written to `frontend/dist`.
+
+In a separate terminal you can start the main Storm binary in development mode. In development mode, Storm serves the frontend from the filesystem.
 
 ```
 go run github.com/malwinmp/storm/cmd/storm --listen=127.0.0.1:8221 --dev-mode [OPTIONS...]

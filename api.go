@@ -338,6 +338,10 @@ func (api *Api) bind(development bool) {
 		Methods(http.MethodPost).
 		Path("/torrents/resume").
 		HandlerFunc(api.DelugeHandler(httpResumeTorrents))
+	apiRouter.
+		Methods(http.MethodPost).
+		Path("/torrents/reannounce").
+		HandlerFunc(api.DelugeHandler(httpForceReannounceTorrents))
 
 	apiRouter.
 		Methods(http.MethodGet).
@@ -359,6 +363,10 @@ func (api *Api) bind(development bool) {
 		Methods(http.MethodPost).
 		Path("/torrent/{id}/resume").
 		HandlerFunc(api.DelugeHandler(TorrentHandler(httpResumeTorrent)))
+	apiRouter.
+		Methods(http.MethodPost).
+		Path("/torrent/{id}/reannounce").
+		HandlerFunc(api.DelugeHandler(TorrentHandler(httpForceReannounceTorrent)))
 
 	apiRouter.
 		Methods(http.MethodGet).

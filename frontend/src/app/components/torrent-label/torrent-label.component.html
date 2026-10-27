@@ -1,8 +1,0 @@
-<div (click)="onUpdateLabel()" class="t-label-container">
-  <span class="t-label" pTooltip="Torrent label" *ngIf="label else noLabel">{{label}}</span>
-
-</div>
-
-<ng-template #noLabel>
-  <span class="t-label-no-label">no label</span>
-</ng-template>

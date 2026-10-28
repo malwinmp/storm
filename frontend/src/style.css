@@ -250,6 +250,9 @@ body { overflow-x: hidden; }
   background: #141a21;
 }
 .label-filter-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex: 1 1 auto;
   min-width: 0;
   border: 0;

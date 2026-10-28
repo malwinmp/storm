@@ -8,7 +8,7 @@ COPY frontend/ ./
 RUN npm run build
 
 
-FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS backend
+FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine AS backend
 ARG TARGETOS
 ARG TARGETARCH
 ENV CGO_ENABLED=0

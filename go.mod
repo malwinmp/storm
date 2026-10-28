@@ -1,6 +1,8 @@
 module github.com/malwinmp/storm
 
-go 1.17
+go 1.27.0
+
+toolchain go1.27.3
 
 require (
 	github.com/gorilla/mux v1.8.0

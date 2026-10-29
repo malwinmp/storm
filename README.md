@@ -8,7 +8,7 @@ The interface supports viewing, adding, pausing, resuming, deleting, filtering, 
 
 <p align="center">
   <img src="_docs/example-screen-1.jpg" alt="storm-s1" width="100%">
-  <img src="_docs/example-screen-1.jpg" alt="storm-s2" width="100%">
+  <img src="_docs/example-screen-2.jpg" alt="storm-s2" width="100%">
 </p>
 
 ## Run with Docker
@@ -32,18 +32,17 @@ Run the published image on the same Docker network as Deluge:
 
 ```sh
 docker run --name storm \
-  --network deluge \
   -p 127.0.0.1:8221:8221 \
-  -e STORM_API_KEY \
-  -e DELUGE_RPC_HOSTNAME \
-  -e DELUGE_RPC_USERNAME \
-  -e DELUGE_RPC_PASSWORD \
+  -e DELUGE_RPC_HOSTNAME=deluge \
+  -e DELUGE_RPC_USERNAME=username \
+  -e DELUGE_RPC_PASSWORD=password \
+  -e STORM_API_KEY=apikey \
   ghcr.io/malwinmp/storm
 ```
 
-The loopback binding is intended for a reverse proxy on the Docker host. To build the image from this repository instead, run `docker build -t storm:local .` and use `storm:local` as the image name.
+The loopback binding is intended for a reverse proxy on the Docker host.
 
-The Compose example in `docker-compose/` runs Storm only; Deluge must already be running and reachable from Compose's default network. Attach the Deluge container to that network and set its reachable hostname as `DELUGE_RPC_HOSTNAME`. Set `DELUGE_RPC_USERNAME`, `DELUGE_RPC_PASSWORD`, and `STORM_API_KEY` in `docker-compose/.env`, then run `docker compose up -d` from that directory. The Compose example binds Storm to loopback for use behind a reverse proxy.
+The Compose example in `docker-compose/` runs Storm only; Deluge must already be running and reachable from storm container. Set `DELUGE_RPC_HOSTNAME`, `DELUGE_RPC_USERNAME`, `DELUGE_RPC_PASSWORD`, and `STORM_API_KEY` in `docker-compose/.env`, then run `docker compose up -d` from that directory. The Compose example binds Storm to loopback for use behind a reverse proxy.
 
 ## Public access and security
 
@@ -61,20 +60,19 @@ Options can be supplied as command-line flags or environment variables.
 | --- | --- | --- |
 | `STORM_API_KEY` | API authentication key; maximum 32 characters | Required in production, unused in development mode |
 | `STORM_BASE_PATH` | URL path prefix at which Storm is served | `/` |
-| `LISTEN_ADDR` | HTTP listen address | `:8221` |
-| `LOGGING_STYLE` | `console` or `production` logging | `console` |
-| `DEV_MODE` | Serve frontend files from disk and disable API authentication | `false` |
 | `DELUGE_RPC_VERSION` | Deluge RPC protocol version: `v1` or `v2` | `v1` |
 | `DELUGE_RPC_HOSTNAME` | Deluge RPC host; required | — |
 | `DELUGE_RPC_PORT` | Deluge RPC port | `58846` |
 | `DELUGE_RPC_USERNAME` | Deluge RPC username | Empty |
 | `DELUGE_RPC_PASSWORD` | Deluge RPC password | Empty |
-| `POOL_MAX_CONNECTIONS` | Maximum concurrent Deluge RPC connections | `5` |
-| `POOL_IDLE_TIME` | How long an idle Deluge RPC connection is kept | `30s` |
 
 The command-line flags use the corresponding names, for example `--api-key`, `--base-path`, `--listen`, `--hostname`, and `--deluge-version`. Run `storm --help` for the complete list.
 
-Deluge 2 restricts torrent visibility to the RPC account that added each torrent. Use the same Deluge account across clients if they need to manage the same torrents.
+## Deluge Version
+
+Deluge has a different interface between versions 1 and 2. You must set `DELUGE_RPC_VERSION` to either `v1` or `v2` based on the version you have installed. Storm defaults to `v1`.
+
+Note that in version 2, different RPC users are not able to see torrents created by another user [(#38)](https://github.com/relvacode/storm/issues/38). If you're using multiple Deluge clients (such as the vanilla Web UI, or Sonarr, etc) you should make sure they're all using the same Deluge RPC account to connect to Deluge.
 
 ## Development
 
@@ -91,9 +89,7 @@ npm run build
 In a separate terminal, run the backend in development mode. Set the Deluge RPC connection variables for your environment; `DELUGE_RPC_HOSTNAME` is required.
 
 ```sh
-export DELUGE_RPC_HOSTNAME=127.0.0.1
-export DELUGE_RPC_VERSION=v2
-go run ./cmd/storm --listen=127.0.0.1:8221 --dev-mode
+go run ./cmd/storm --listen=127.0.0.1:8221 --dev-mode [OPTIONS...]
 ```
 
 To run the Vite development server, open another terminal and run:

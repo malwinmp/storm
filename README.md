@@ -19,17 +19,6 @@ Storm must be able to reach Deluge's RPC daemon. Put both containers on a Docker
 "allow_remote": true
 ```
 
-Set these environment variables in your shell or secret manager before starting Storm. In production, `STORM_API_KEY` is required and may contain up to 32 characters. Use a unique random key; for a 32-character hexadecimal key, generate one with `openssl rand -hex 16`. The Deluge username and password must match an account in Deluge's `auth` file.
-
-```sh
-export STORM_API_KEY="$(openssl rand -hex 16)"
-export DELUGE_RPC_HOSTNAME=deluge
-export DELUGE_RPC_USERNAME=localclient
-export DELUGE_RPC_PASSWORD='your-deluge-rpc-password'
-```
-
-Run the published image on the same Docker network as Deluge:
-
 ```sh
 docker run --name storm \
   -p 127.0.0.1:8221:8221 \

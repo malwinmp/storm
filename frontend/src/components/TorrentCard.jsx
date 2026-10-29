@@ -11,11 +11,13 @@ import {
   Tag,
   Trash2,
 } from "lucide-react";
+import { TrackerStatusMarker } from "./TrackerStatusMarker.jsx";
 import { call } from "../api/client.js";
 import {
   addedAgo,
   announceTime,
   duration,
+  isUnregisteredTracker,
   pretty,
   size,
 } from "../utils/formatters.js";
@@ -75,6 +77,9 @@ export function TorrentCard({ t, open, act, reload, notice }) {
           >
             <Clock size={11} />
             Announce in {announceTime(t.NextAnnounce)}
+            {isUnregisteredTracker(t.TrackerStatus) && (
+              <TrackerStatusMarker status={t.TrackerStatus} />
+            )}
           </span>
           <div className="card-actions">
             <button

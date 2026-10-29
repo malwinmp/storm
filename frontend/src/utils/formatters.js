@@ -86,3 +86,12 @@ export const pretty = (s) =>
                 : s === "Moving"
                   ? "moving"
                   : "active";
+
+export const isUnregisteredTracker = (status) => {
+  return (
+    typeof status === "string" &&
+    ["unregistered", "not registered", "does not exist"].some((phrase) =>
+      status.toLowerCase().includes(phrase)
+    )
+  );
+};

@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	deluge "github.com/malwinmp/go-libdeluge"
 	"github.com/jessevdk/go-flags"
+	deluge "github.com/malwinmp/go-libdeluge"
 	storm "github.com/malwinmp/storm"
 	"go.uber.org/zap"
 	"net/http"
@@ -13,6 +13,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unicode/utf8"
 )
 
 func signalContext(ctx context.Context) context.Context {
@@ -59,7 +60,7 @@ type ServerOptions struct {
 	Listen          string `short:"l" long:"listen" default:":8221" env:"LISTEN_ADDR" description:"The address for the HTTP server"`
 	LogStyle        string `long:"log-style" choice:"production" choice:"console" default:"console" env:"LOGGING_STYLE" description:"The style of log messages"`
 	BasePath        *Path  `long:"base-path" required:"true" default:"/" env:"STORM_BASE_PATH" description:"Respond to requests from this base URL path"`
-	ApiKey          string `long:"api-key" env:"STORM_API_KEY" description:"Set the password required to access the API (enables authentication)"`
+	ApiKey          string `long:"api-key" env:"STORM_API_KEY" description:"API key for access (maximum 32 characters)"`
 	DevelopmentMode bool   `long:"dev-mode" env:"DEV_MODE" description:"Run in development mode"`
 }
 
@@ -82,8 +83,12 @@ func (options *ServerOptions) RunHandler(ctx context.Context, log *zap.Logger, h
 	var (
 		errors = make(chan error, 1)
 		server = &http.Server{
-			Addr:    options.Listen,
-			Handler: handler,
+			Addr:              options.Listen,
+			Handler:           handler,
+			ReadTimeout:       30 * time.Second,
+			ReadHeaderTimeout: 10 * time.Second,
+			IdleTimeout:       2 * time.Minute,
+			MaxHeaderBytes:    1 << 20,
 		}
 	)
 
@@ -157,6 +162,13 @@ func Main() error {
 	_, err := parser.Parse()
 	if err != nil {
 		return err
+	}
+	keyLength := utf8.RuneCountInString(options.ApiKey)
+	if keyLength > 32 {
+		return fmt.Errorf("STORM_API_KEY (or --api-key) must not exceed 32 characters")
+	}
+	if !options.DevelopmentMode && options.ApiKey == "" {
+		return fmt.Errorf("STORM_API_KEY (or --api-key) is required unless --dev-mode is enabled")
 	}
 
 	log, err := (&options.ServerOptions).Logger()

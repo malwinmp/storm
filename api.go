@@ -4,8 +4,8 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
-	deluge "github.com/malwinmp/go-libdeluge"
 	"github.com/gorilla/mux"
+	deluge "github.com/malwinmp/go-libdeluge"
 	"github.com/spf13/afero"
 	"go.uber.org/zap"
 	"html/template"
@@ -78,7 +78,18 @@ func (api *Api) DelugeHandler(f DelugeMethod) http.HandlerFunc {
 }
 
 func (api *Api) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	setSecurityHeaders(rw)
 	api.router.ServeHTTP(rw, r)
+}
+
+func setSecurityHeaders(rw http.ResponseWriter) {
+	h := rw.Header()
+	h.Set("Content-Security-Policy", "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'")
+	h.Set("X-Content-Type-Options", "nosniff")
+	h.Set("X-Frame-Options", "DENY")
+	h.Set("Referrer-Policy", "no-referrer")
+	h.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+	h.Set("Strict-Transport-Security", "max-age=31536000")
 }
 
 // httpNotFound implements http.Handler which returns a not found error message.
@@ -192,7 +203,7 @@ func (api *Api) keyFromRequest(r *http.Request) (string, bool) {
 func (api *Api) logForRequest(rw *WrappedResponse, r *http.Request) {
 	logger := api.log.With(
 		zap.String("Method", r.Method),
-		zap.String("URL", r.URL.String()),
+		zap.String("Path", r.URL.EscapedPath()),
 		zap.String("RemoteAddr", r.RemoteAddr),
 		zap.Time("Time", rw.Started()),
 		zap.Int("StatusCode", rw.code),
@@ -252,6 +263,7 @@ func (api *Api) httpMiddlewareAuthenticate(next http.Handler) http.Handler {
 				Expires:  time.Now().Add(time.Hour * 24 * 365),
 				SameSite: http.SameSiteStrictMode,
 				HttpOnly: true,
+				Secure:   true,
 			})
 		}
 
@@ -277,7 +289,7 @@ func (api *Api) bind(development bool) {
 	apiRouter.Use(api.httpMiddlewareLog)
 
 	// Enable API level authentication
-	if api.apiKey != "" {
+	if !development {
 		apiRouter.Use(api.httpMiddlewareAuthenticate)
 	}
 

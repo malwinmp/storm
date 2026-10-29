@@ -70,6 +70,9 @@ func SendError(rw http.ResponseWriter, err error) {
 	if httpError, ok := err.(HTTPError); ok {
 		code = httpError.StatusCode()
 	}
+	if code >= http.StatusInternalServerError {
+		response.Error = "Internal server error"
+	}
 
 	if wr, ok := rw.(*WrappedResponse); ok {
 		wr.error = err

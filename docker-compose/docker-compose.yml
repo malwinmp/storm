@@ -1,21 +1,13 @@
 version: "2.1"
 
 services:
-  deluge:
-    image: ghcr.io/linuxserver/deluge
-    volumes:
-      - deluge-config:/config
-      - ./core.conf:/config/core.conf
-      - ./auth:/config/auth:ro
   storm:
     image: ghcr.io/relvacode/storm
     environment:
+      STORM_API_KEY: ${STORM_API_KEY:?Set STORM_API_KEY in .env}
       DELUGE_RPC_VERSION: v2
-      DELUGE_RPC_HOSTNAME: deluge
-      DELUGE_RPC_USERNAME: localclient
-      DELUGE_RPC_PASSWORD: deluge
+      DELUGE_RPC_HOSTNAME: ${DELUGE_RPC_HOSTNAME:?Set DELUGE_RPC_HOSTNAME in .env}
+      DELUGE_RPC_USERNAME: ${DELUGE_RPC_USERNAME:?Set DELUGE_RPC_USERNAME in .env}
+      DELUGE_RPC_PASSWORD: ${DELUGE_RPC_PASSWORD:?Set DELUGE_RPC_PASSWORD in .env}
     ports:
-      - "8221:8221"
-
-volumes:
-  deluge-config:
+      - "127.0.0.1:8221:8221"

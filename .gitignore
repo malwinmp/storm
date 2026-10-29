@@ -1,6 +1,8 @@
 .idea
 .angular
 cmd/storm/storm
+.env
+docker-compose/.env
 
 frontend/node_modules
 frontend/.idea

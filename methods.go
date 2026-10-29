@@ -70,6 +70,15 @@ func httpResumeTorrents(conn deluge.DelugeClient, r *http.Request) (interface{},
 	return nil, conn.ResumeTorrents(ids...)
 }
 
+func httpForceReannounceTorrents(conn deluge.DelugeClient, r *http.Request) (interface{}, error) {
+	ids, err := torrentIDs(r.URL.Query(), 1)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, conn.ForceReannounce(ids)
+}
+
 type AddTorrentRequest struct {
 	Type string
 	URI  string
@@ -146,6 +155,10 @@ func httpPauseTorrent(id string, conn deluge.DelugeClient, _ *http.Request) (int
 
 func httpResumeTorrent(id string, conn deluge.DelugeClient, _ *http.Request) (interface{}, error) {
 	return nil, conn.ResumeTorrents(id)
+}
+
+func httpForceReannounceTorrent(id string, conn deluge.DelugeClient, _ *http.Request) (interface{}, error) {
+	return nil, conn.ForceReannounce([]string{id})
 }
 
 func httpSetTorrentOptions(id string, conn deluge.DelugeClient, r *http.Request) (interface{}, error) {

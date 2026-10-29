@@ -1,16 +1,34 @@
-FROM --platform=${BUILDPLATFORM} golang:alpine as compiler
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend
+WORKDIR /app/frontend
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+
+COPY frontend/ ./
+RUN npm run build
+
+
+FROM --platform=$BUILDPLATFORM golang:1.27.3-alpine AS backend
 ARG TARGETOS
 ARG TARGETARCH
 ENV CGO_ENABLED=0
+WORKDIR /src
 
-WORKDIR /go/src/storm
+COPY go.mod go.sum ./
+RUN go mod download
 
-COPY . .
+COPY . ./
+COPY --from=frontend /app/frontend/dist ./frontend/dist
 
-RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" github.com/malwinmp/storm/cmd/storm
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /out/storm ./cmd/storm
 
 
-FROM --platform=${TARGETPLATFORM} alpine
-COPY --from=compiler /go/src/storm/storm /usr/bin/storm
+FROM alpine:3.21 AS runtime
+RUN apk add --no-cache ca-certificates \
+    && addgroup -S storm \
+    && adduser -S -G storm storm
+COPY --from=backend /out/storm /usr/local/bin/storm
 
-ENTRYPOINT ["/usr/bin/storm"]
+USER storm
+EXPOSE 8221
+ENTRYPOINT ["/usr/local/bin/storm"]

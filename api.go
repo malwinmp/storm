@@ -360,6 +360,10 @@ func (api *Api) bind(development bool) {
 		Path("/torrent/{id}").
 		HandlerFunc(api.DelugeHandler(TorrentHandler(httpTorrentStatus)))
 	apiRouter.
+		Methods(http.MethodGet).
+		Path("/torrent/{id}/files").
+		HandlerFunc(api.DelugeHandler(TorrentHandler(httpTorrentFiles)))
+	apiRouter.
 		Methods(http.MethodDelete).
 		Path("/torrent/{id}").
 		HandlerFunc(api.DelugeHandler(TorrentHandler(httpDeleteTorrent)))

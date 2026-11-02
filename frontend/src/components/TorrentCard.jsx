@@ -88,12 +88,14 @@ export function TorrentCard({ t, open, act, reload, notice }) {
           <div className="card-actions">
             <button
               title="Select files"
-              onClick={() =>
-                open({
-                  type: "files",
-                  torrent: t,
-                })
-              }
+              onClick={async () => {
+                try {
+                  const details = await call(`torrent/${t.Hash}/files`);
+                  open({ type: "files", torrent: { ...t, ...details } });
+                } catch (error) {
+                  notice(error.message);
+                }
+              }}
             >
               <FolderOpen size={16} />
             </button>

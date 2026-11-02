@@ -10,20 +10,59 @@ import (
 )
 
 type ViewTorrent struct {
-	Hash  string
-	Label string
-	*deluge.TorrentStatus
+	Hash                string
+	Label               string
+	State               string
+	TrackerStatus       string
+	NextAnnounce        int64
+	Name                string
+	TotalSize           int64
+	Progress            float32
+	ETA                 float32
+	DownloadPayloadRate int64
+	UploadPayloadRate   int64
+	TotalUploaded       int64
+	TotalDone           int64
+	Ratio               float32
+	SeedingTime         int64
+	TimeAdded           float32
+}
+
+type ViewSession struct {
+	UploadRate    float32
+	DownloadRate  float32
+	TotalDownload int64
+	TotalUpload   int64
+	NumPeers      int16
+	DhtNodes      int16
 }
 
 type ViewUpdate struct {
 	Torrents []*ViewTorrent
-	Session  *deluge.SessionStatus
-	DiskFree int64
+	Session  *ViewSession
 }
 
 type ViewUpdateResponse struct {
 	ViewUpdate
 	ETag string
+}
+
+type torrentStatusFieldClient interface {
+	TorrentsStatusFields(deluge.TorrentState, []string, []string) (map[string]*deluge.TorrentStatus, error)
+}
+
+type sessionStatusFieldClient interface {
+	GetSessionStatusFields([]string) (*deluge.SessionStatus, error)
+}
+
+var viewTorrentFields = []string{
+	"state", "tracker_status", "next_announce", "name", "total_size", "progress",
+	"eta", "download_payload_rate", "upload_payload_rate",
+	"total_uploaded", "total_done", "ratio", "seeding_time", "time_added", "label",
+}
+
+var viewSessionFields = []string{
+	"upload_rate", "download_rate", "total_download", "total_upload", "num_peers", "dht_nodes",
 }
 
 func httpViewUpdate(conn deluge.DelugeClient, r *http.Request) (interface{}, error) {
@@ -33,7 +72,13 @@ func httpViewUpdate(conn deluge.DelugeClient, r *http.Request) (interface{}, err
 		state = deluge.TorrentState(q.Get("state"))
 	)
 
-	torrents, err := conn.TorrentsStatus(state, ids)
+	var torrents map[string]*deluge.TorrentStatus
+	var err error
+	if client, ok := conn.(torrentStatusFieldClient); ok {
+		torrents, err = client.TorrentsStatusFields(state, ids, viewTorrentFields)
+	} else {
+		torrents, err = conn.TorrentsStatus(state, ids)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -44,36 +89,49 @@ func httpViewUpdate(conn deluge.DelugeClient, r *http.Request) (interface{}, err
 	}
 	sort.Strings(torrentHashes)
 
-	var torrentLabels = make(map[string]string)
-
-	plugin, err := labelPluginClient(conn)
-	if err == nil {
-		labels, err := plugin.GetTorrentsLabels(state, ids)
-		if err == nil {
-			torrentLabels = labels
-		}
-	}
-
 	var responseTorrents = make([]*ViewTorrent, 0, len(torrents))
 	for _, k := range torrentHashes {
+		torrent := torrents[k]
 		responseTorrents = append(responseTorrents, &ViewTorrent{
-			Hash:          k,
-			Label:         torrentLabels[k],
-			TorrentStatus: torrents[k],
+			Hash:                k,
+			Label:               torrent.Label,
+			State:               torrent.State,
+			TrackerStatus:       torrent.TrackerStatus,
+			NextAnnounce:        torrent.NextAnnounce,
+			Name:                torrent.Name,
+			TotalSize:           torrent.TotalSize,
+			Progress:            torrent.Progress,
+			ETA:                 torrent.ETA,
+			DownloadPayloadRate: torrent.DownloadPayloadRate,
+			UploadPayloadRate:   torrent.UploadPayloadRate,
+			TotalUploaded:       torrent.TotalUploaded,
+			TotalDone:           torrent.TotalDone,
+			Ratio:               torrent.Ratio,
+			SeedingTime:         torrent.SeedingTime,
+			TimeAdded:           torrent.TimeAdded,
 		})
 	}
 
-	session, err := conn.GetSessionStatus()
+	var session *deluge.SessionStatus
+	if client, ok := conn.(sessionStatusFieldClient); ok {
+		session, err = client.GetSessionStatusFields(viewSessionFields)
+	} else {
+		session, err = conn.GetSessionStatus()
+	}
 	if err != nil {
 		return nil, err
 	}
 
-	diskFree, err := conn.GetFreeSpace(q.Get("path"))
-
 	update := ViewUpdate{
 		Torrents: responseTorrents,
-		Session:  session,
-		DiskFree: diskFree,
+		Session: &ViewSession{
+			UploadRate:    session.UploadRate,
+			DownloadRate:  session.DownloadRate,
+			TotalDownload: session.TotalDownload,
+			TotalUpload:   session.TotalUpload,
+			NumPeers:      session.NumPeers,
+			DhtNodes:      session.DhtNodes,
+		},
 	}
 
 	// ETag calculation

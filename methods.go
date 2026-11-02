@@ -2,8 +2,8 @@ package storm
 
 import (
 	"fmt"
-	deluge "github.com/malwinmp/go-libdeluge"
 	"github.com/gorilla/mux"
+	deluge "github.com/malwinmp/go-libdeluge"
 	"net/http"
 	"net/url"
 )
@@ -134,6 +134,36 @@ func TorrentHandler(f TorrentMethod) DelugeMethod {
 
 func httpTorrentStatus(id string, conn deluge.DelugeClient, _ *http.Request) (interface{}, error) {
 	return conn.TorrentStatus(id)
+}
+
+type torrentStatusByFieldsClient interface {
+	TorrentStatusFields(string, []string) (*deluge.TorrentStatus, error)
+}
+
+type TorrentFilesResponse struct {
+	Files          []deluge.File
+	FilePriorities []int64
+}
+
+func httpTorrentFiles(id string, conn deluge.DelugeClient, _ *http.Request) (interface{}, error) {
+	if client, ok := conn.(torrentStatusByFieldsClient); ok {
+		status, err := client.TorrentStatusFields(id, []string{"files", "file_priorities"})
+		if err != nil {
+			return nil, err
+		}
+		return TorrentFilesResponse{
+			Files:          status.Files,
+			FilePriorities: status.FilePriorities,
+		}, nil
+	}
+	status, err := conn.TorrentStatus(id)
+	if err != nil {
+		return nil, err
+	}
+	return TorrentFilesResponse{
+		Files:          status.Files,
+		FilePriorities: status.FilePriorities,
+	}, nil
 }
 
 func httpDeleteTorrent(id string, conn deluge.DelugeClient, r *http.Request) (interface{}, error) {

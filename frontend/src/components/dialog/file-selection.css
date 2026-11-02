@@ -1,0 +1,44 @@
+.file-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.file-selection-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.file-size-summary {
+  display: flex;
+  gap: 14px;
+  color: #8b98a5;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.file-size-summary strong {
+  color: #d6dee6;
+  font-weight: 600;
+}
+
+.file-row {
+  align-items: flex-start;
+}
+
+.file-row input {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.file-row span {
+  min-width: 0;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+}

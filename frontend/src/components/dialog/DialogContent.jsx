@@ -1,6 +1,7 @@
 import { File, Magnet, Wifi } from "lucide-react";
 import { call } from "../../api/client.js";
 import { size } from "../../utils/formatters.js";
+import "./file-selection.css";
 import { Field } from "./Field.jsx";
 import { TorrentOptions } from "./TorrentOptions.jsx";
 
@@ -163,25 +164,49 @@ function DeleteConfirmation({ count, removeData, setRemoveData }) {
 }
 
 function TorrentFileSelection({ torrent, checked, setChecked }) {
+  const files = torrent.Files || [];
+  const selectedSize = files.reduce(
+    (total, file, index) => total + (checked[index] ? file.Size : 0),
+    0,
+  );
+  const totalSize = files.reduce((total, file) => total + file.Size, 0);
+  const allSelected = files.length > 0 && files.every((_, index) => checked[index]);
+
   return (
-    <div className="file-list">
-      {(torrent.Files || []).map((file, index) => (
-        <label key={index} className="file-row">
+    <div className="file-selection">
+      <div className="file-selection-toolbar">
+        <label className="check-field">
           <input
             type="checkbox"
-            checked={!!checked[index]}
-            onChange={(event) =>
-              setChecked((current) =>
-                current.map((value, currentIndex) =>
-                  index === currentIndex ? event.target.checked : value,
-                ),
-              )
-            }
+            checked={allSelected}
+            onChange={(event) => setChecked(files.map(() => event.target.checked))}
           />
-          <span>{file.Path}</span>
-          <small>{size(file.Size)}</small>
+          Select all files
         </label>
-      ))}
+        <div className="file-size-summary" aria-live="polite">
+          <span>Selected: <strong>{size(selectedSize)}</strong></span>
+          <span>Total: <strong>{size(totalSize)}</strong></span>
+        </div>
+      </div>
+      <div className="file-list">
+        {files.map((file, index) => (
+          <label key={index} className="file-row">
+            <input
+              type="checkbox"
+              checked={!!checked[index]}
+              onChange={(event) =>
+                setChecked((current) =>
+                  current.map((value, currentIndex) =>
+                    index === currentIndex ? event.target.checked : value,
+                  ),
+                )
+              }
+            />
+            <span>{file.Path}</span>
+            <small>{size(file.Size)}</small>
+          </label>
+        ))}
+      </div>
     </div>
   );
 }

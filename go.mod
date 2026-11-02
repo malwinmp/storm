@@ -7,7 +7,7 @@ toolchain go1.27.3
 require (
 	github.com/gorilla/mux v1.8.0
 	github.com/jessevdk/go-flags v1.4.0
-	github.com/malwinmp/go-libdeluge v0.6.2
+	github.com/malwinmp/go-libdeluge v0.6.3
 	github.com/spf13/afero v1.6.0
 	go.uber.org/zap v1.16.0
 )

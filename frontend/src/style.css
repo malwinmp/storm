@@ -176,7 +176,7 @@ body { overflow-x: hidden; }
   min-width: 0;
 }
 .card-controls-row > .announce-badge { flex: 0 1 auto; }
-.card-controls-row .card-actions { flex: 0 0 auto; }
+.card-controls-row .card-actions { flex: 0 0 auto; margin-left: auto; }
 
 .ratio-low, .ratio-low .ratio-glyph { color: #fb7185; }
 .ratio-good, .ratio-good .ratio-glyph { color: #8bd64d; }
@@ -399,4 +399,14 @@ body { overflow-x: hidden; }
   line-height: 1.4;
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+.card-bottom .download-stat,
+.card-bottom .download-stat svg {
+  color: #fb7185;
+}
+
+.card-bottom .upload-stat,
+.card-bottom .upload-stat svg {
+  color: #8bd64d;
 }

@@ -30,6 +30,8 @@ export function TorrentCard({ t, open, act, reload, notice }) {
           0,
         )
       : t.TotalSize;
+  const downloaded = t.TotalDone || 0;
+  const uploaded = t.TotalUploaded || 0;
   return (
     <article className="torrent-card">
       <div className="card-top">
@@ -71,16 +73,18 @@ export function TorrentCard({ t, open, act, reload, notice }) {
           </div>
         </div>
         <div className="card-controls-row">
-          <span
-            className="announce-badge"
-            title="Time until next tracker announce"
-          >
-            <Clock size={11} />
-            Announce in {announceTime(t.NextAnnounce)}
-            {isUnregisteredTracker(t.TrackerStatus) && (
-              <TrackerStatusMarker status={t.TrackerStatus} />
-            )}
-          </span>
+          {t.State !== "Paused" && (
+            <span
+              className="announce-badge"
+              title="Time until next tracker announce"
+            >
+              <Clock size={11} />
+              Announce in {announceTime(t.NextAnnounce)}
+              {isUnregisteredTracker(t.TrackerStatus) && (
+                <TrackerStatusMarker status={t.TrackerStatus} />
+              )}
+            </span>
+          )}
           <div className="card-actions">
             <button
               title="Select files"
@@ -162,13 +166,13 @@ export function TorrentCard({ t, open, act, reload, notice }) {
         />
       </div>
       <div className="card-bottom">
-        <span>
+        <span className="download-stat">
           <ArrowDown size={13} />
-          {size(t.DownloadPayloadRate)}/s
+          {size(t.DownloadPayloadRate)}/s ({size(downloaded)})
         </span>
-        <span>
+        <span className="upload-stat">
           <ArrowUp size={13} />
-          {size(t.UploadPayloadRate)}/s
+          {size(t.UploadPayloadRate)}/s ({size(uploaded)})
         </span>
         <span>
           <Activity size={13} />

@@ -30,7 +30,7 @@ export function TorrentCard({ t, open, act, reload, notice }) {
           0,
         )
       : t.TotalSize;
-  const downloaded = t.TotalDone || 0;
+  const downloaded = t.AllTimeDownload || 0;
   const uploaded = t.TotalUploaded || 0;
   return (
     <article className="torrent-card">
@@ -73,7 +73,7 @@ export function TorrentCard({ t, open, act, reload, notice }) {
           </div>
         </div>
         <div className="card-controls-row">
-          {t.State !== "Paused" && (
+          {t.State !== "Paused" && t.State !== "Checking" && (
             <span
               className="announce-badge"
               title="Time until next tracker announce"

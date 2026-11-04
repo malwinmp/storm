@@ -22,7 +22,7 @@ type ViewTorrent struct {
 	DownloadPayloadRate int64
 	UploadPayloadRate   int64
 	TotalUploaded       int64
-	TotalDone           int64
+	AllTimeDownload     int64
 	Ratio               float32
 	SeedingTime         int64
 	TimeAdded           float32
@@ -58,7 +58,7 @@ type sessionStatusFieldClient interface {
 var viewTorrentFields = []string{
 	"state", "tracker_status", "next_announce", "name", "total_size", "progress",
 	"eta", "download_payload_rate", "upload_payload_rate",
-	"total_uploaded", "total_done", "ratio", "seeding_time", "time_added", "label",
+	"total_uploaded", "all_time_download", "ratio", "seeding_time", "time_added", "label",
 }
 
 var viewSessionFields = []string{
@@ -105,7 +105,7 @@ func httpViewUpdate(conn deluge.DelugeClient, r *http.Request) (interface{}, err
 			DownloadPayloadRate: torrent.DownloadPayloadRate,
 			UploadPayloadRate:   torrent.UploadPayloadRate,
 			TotalUploaded:       torrent.TotalUploaded,
-			TotalDone:           torrent.TotalDone,
+			AllTimeDownload:     torrent.AllTimeDownload,
 			Ratio:               torrent.Ratio,
 			SeedingTime:         torrent.SeedingTime,
 			TimeAdded:           torrent.TimeAdded,

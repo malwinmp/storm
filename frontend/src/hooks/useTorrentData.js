@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { call } from "../api/client.js";
 import { TORRENT_REFRESH_INTERVAL_MS } from "../utils/formatters.js";
 
-const DISK_REFRESH_INTERVAL_MS = 60_000;
+const DISK_REFRESH_INTERVAL_MS = 2_000;
 
 export function useTorrentData(notice) {
   const [torrents, setTorrents] = useState(null);

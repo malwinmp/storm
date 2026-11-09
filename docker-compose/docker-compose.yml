@@ -11,3 +11,8 @@ services:
       DELUGE_RPC_PASSWORD: ${DELUGE_RPC_PASSWORD:?Set DELUGE_RPC_PASSWORD in .env}
     ports:
       - "127.0.0.1:8221:8221"
+    volumes:
+      - storm-config:/config
+
+volumes:
+  storm-config:

@@ -67,8 +67,8 @@ export function DropdownMenu({
             menuStyle ||
             (className === "sort-wrap"
               ? {
-                  left: 0,
-                  right: "auto",
+                  right: 0,
+                  left: "auto",
                 }
               : undefined)
           }

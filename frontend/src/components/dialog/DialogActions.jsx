@@ -151,6 +151,16 @@ export function DialogActions({
           Enable plugin
         </button>
       )}
+      {type === "saved-filter" && (
+        <button className="primary" disabled={busy || !entry.trim()} onClick={() =>
+          run(() => call("filters", {
+            method: "POST",
+            body: JSON.stringify({ name: entry.trim(), ...dialog.settings }),
+          }))
+        }>
+          {busy ? "Saving…" : "Save filter"}
+        </button>
+      )}
     </div>
   );
 }

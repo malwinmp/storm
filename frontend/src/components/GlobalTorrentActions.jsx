@@ -1,15 +1,23 @@
-import { Pause, Play, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Pause, Play, Plus, Trash2 } from "lucide-react";
+import { SavedFilterMenu } from "./SavedFilterMenu.jsx";
 
 export function GlobalTorrentActions({
   state,
   filtered,
-  labelFilters,
-  setLabelFilters,
   toggleView,
   openDialog,
+  savedFilters,
+  activeFilterId,
+  applySavedFilter,
+  deleteSavedFilter,
+  createSavedFilter,
+  hasActiveFilterChanges,
+  updateActiveFilter,
+  variant = "actions",
 }) {
   return (
-    <div className="global-actions">
+    <div className={`global-actions global-actions-${variant}`}>
+      {variant === "actions" && <>
       <button
         className="icon-button add-button"
         title="Add torrent"
@@ -25,6 +33,8 @@ export function GlobalTorrentActions({
       >
         {state === "Paused" ? <Play size={17} /> : <Pause size={17} />}
       </button>
+      </>}
+      {variant === "utilities" && <>
       <button
         className="icon-button danger"
         title="Remove displayed"
@@ -39,15 +49,8 @@ export function GlobalTorrentActions({
       >
         <Trash2 size={17} />
       </button>
-      <button
-        className="icon-button"
-        title="Reset label filters"
-        aria-label="Reset label filters"
-        onClick={() => setLabelFilters({})}
-        disabled={!Object.values(labelFilters).some(Boolean)}
-      >
-        <RotateCcw size={16} />
-      </button>
+      <SavedFilterMenu filters={savedFilters} activeId={activeFilterId} onApply={applySavedFilter} onDelete={deleteSavedFilter} onCreate={createSavedFilter} hasChanges={hasActiveFilterChanges} onUpdate={updateActiveFilter} />
+      </>}
     </div>
   );
 }

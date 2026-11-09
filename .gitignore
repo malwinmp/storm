@@ -7,3 +7,5 @@ docker-compose/.env
 frontend/node_modules
 frontend/.idea
 frontend/dist
+
+config/

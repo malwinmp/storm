@@ -61,6 +61,7 @@ type ServerOptions struct {
 	LogStyle        string `long:"log-style" choice:"production" choice:"console" default:"console" env:"LOGGING_STYLE" description:"The style of log messages"`
 	BasePath        *Path  `long:"base-path" required:"true" default:"/" env:"STORM_BASE_PATH" description:"Respond to requests from this base URL path"`
 	ApiKey          string `long:"api-key" env:"STORM_API_KEY" description:"API key for access (maximum 32 characters)"`
+	FilterFile      string `long:"filter-file" env:"STORM_FILTERS_FILE" default:"filters.json" description:"Path to the saved filter configuration file"`
 	DevelopmentMode bool   `long:"dev-mode" env:"DEV_MODE" description:"Run in development mode"`
 }
 
@@ -189,7 +190,7 @@ func Main() error {
 
 	var (
 		apiLog = log.Named("api")
-		api    = storm.New(apiLog, pool, (string)(*options.BasePath), options.ServerOptions.ApiKey, options.DevelopmentMode)
+		api    = storm.New(apiLog, pool, (string)(*options.BasePath), options.ServerOptions.ApiKey, options.DevelopmentMode, options.ServerOptions.FilterFile)
 	)
 
 	return (&options.ServerOptions).RunHandler(ctx, apiLog, api)

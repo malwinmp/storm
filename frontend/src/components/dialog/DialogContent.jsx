@@ -29,6 +29,11 @@ export function DialogContent({
   return (
     <div className="modal-body">
       {type === "add-menu" && <AddTorrentChoices setType={setType} />}
+      {type === "saved-filter" && (
+        <Field label="Filter name">
+          <input autoFocus placeholder="e.g. Active downloads" value={entry} onChange={(event) => setEntry(event.target.value)} />
+        </Field>
+      )}
       {["magnet", "url"].includes(type) && (
         <AddTorrentSource
           type={type}

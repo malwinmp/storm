@@ -4,7 +4,7 @@ import { call } from "../api/client.js";
 import { DialogActions } from "./dialog/DialogActions.jsx";
 import { DialogContent } from "./dialog/DialogContent.jsx";
 
-function Dialog({ d, close, act, load }) {
+function Dialog({ d, close, act, load, savedFilterCreated }) {
   const [type, setType] = useState(d.type);
   const [entry, setEntry] = useState("");
   const [config, setConfig] = useState(d.config || {});
@@ -33,9 +33,11 @@ function Dialog({ d, close, act, load }) {
     setBusy(true);
     setError("");
     try {
-      await action();
+      const result = await action();
+      if (type === "saved-filter") savedFilterCreated?.(result);
       close();
       load();
+      return result;
     } catch (actionError) {
       setError(actionError.message);
       setBusy(false);
@@ -114,6 +116,7 @@ function getDialogTitle(type) {
     files: "Select files",
     label: "Edit label",
     plugin: "Enable Label plugin",
+    "saved-filter": "Create saved filter",
   };
   return titles[type] || "";
 }
@@ -123,6 +126,7 @@ function getDialogDescription(type) {
     delete: "Choose whether to remove downloaded data as well.",
     files: "Choose which files to download.",
     label: "Assign or create a label.",
+    "saved-filter": "Save the current status, sorting, and label settings.",
   };
   return descriptions[type] || "Configure the torrent before adding it.";
 }

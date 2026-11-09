@@ -1,8 +1,11 @@
 package storm
 
 import (
+	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	deluge "github.com/malwinmp/go-libdeluge"
@@ -13,7 +16,9 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -29,13 +34,18 @@ func appendSuffix(s, suffix string) string {
 	return fmt.Sprint(s, suffix)
 }
 
-func New(log *zap.Logger, pool *ConnectionPool, pathPrefix string, apiKey string, development bool) *Api {
+func New(log *zap.Logger, pool *ConnectionPool, pathPrefix string, apiKey string, development bool, filterFiles ...string) *Api {
+	filterFile := "filters.json"
+	if len(filterFiles) > 0 && filterFiles[0] != "" {
+		filterFile = filterFiles[0]
+	}
 	api := &Api{
 		pool:       pool,
 		pathPrefix: strings.TrimSuffix(pathPrefix, "/"),
 		apiKey:     apiKey,
 		log:        log,
 		router:     mux.NewRouter(),
+		filterFile: filterFile,
 	}
 
 	api.router.NotFoundHandler = api.httpNotFound()
@@ -49,8 +59,163 @@ type Api struct {
 	pathPrefix string
 	apiKey     string
 
-	log    *zap.Logger
-	router *mux.Router
+	log        *zap.Logger
+	router     *mux.Router
+	filterFile string
+	filterMu   sync.Mutex
+}
+
+type SavedFilter struct {
+	ID           string         `json:"id"`
+	Name         string         `json:"name"`
+	State        string         `json:"state"`
+	Sort         string         `json:"sort"`
+	Reverse      bool           `json:"reverse"`
+	LabelFilters map[string]int `json:"labelFilters"`
+}
+
+func (api *Api) readFilters() ([]SavedFilter, error) {
+	data, err := os.ReadFile(api.filterFile)
+	if os.IsNotExist(err) {
+		return []SavedFilter{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var filters []SavedFilter
+	if err := json.Unmarshal(data, &filters); err != nil {
+		return nil, err
+	}
+	if filters == nil {
+		filters = []SavedFilter{}
+	}
+	return filters, nil
+}
+
+func (api *Api) writeFilters(filters []SavedFilter) error {
+	data, err := json.MarshalIndent(filters, "", "  ")
+	if err != nil {
+		return err
+	}
+	if dir := filepath.Dir(api.filterFile); dir != "." {
+		if err := os.MkdirAll(dir, 0750); err != nil {
+			return err
+		}
+	}
+	tmp := api.filterFile + ".tmp"
+	if err := os.WriteFile(tmp, data, 0600); err != nil {
+		return err
+	}
+	return os.Rename(tmp, api.filterFile)
+}
+
+func (api *Api) httpSavedFilters(rw http.ResponseWriter, r *http.Request) {
+	api.filterMu.Lock()
+	defer api.filterMu.Unlock()
+	filters, err := api.readFilters()
+	if err != nil {
+		SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to read saved filters"})
+		return
+	}
+	switch r.Method {
+	case http.MethodGet:
+		_ = Handle(rw, r, func(*http.Request) (interface{}, error) { return filters, nil })
+	case http.MethodPost:
+		var filter SavedFilter
+		if err := json.NewDecoder(http.MaxBytesReader(rw, r.Body, 1<<20)).Decode(&filter); err != nil {
+			SendError(rw, &Error{Code: http.StatusBadRequest, Message: "Invalid filter"})
+			return
+		}
+		filter.Name = strings.TrimSpace(filter.Name)
+		if filter.Name == "" || filter.State == "" || filter.Sort == "" {
+			SendError(rw, &Error{Code: http.StatusBadRequest, Message: "Filter name and settings are required"})
+			return
+		}
+		for _, existing := range filters {
+			if existing.Name == filter.Name {
+				SendError(rw, &Error{Code: http.StatusConflict, Message: "A filter with this name already exists"})
+				return
+			}
+		}
+		idBytes := make([]byte, 16)
+		if _, err := io.ReadFull(rand.Reader, idBytes); err != nil {
+			SendError(rw, err)
+			return
+		}
+		filter.ID = hex.EncodeToString(idBytes)
+		if filter.LabelFilters == nil {
+			filter.LabelFilters = map[string]int{}
+		}
+		filters = append(filters, filter)
+		if err := api.writeFilters(filters); err != nil {
+			SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to save filter"})
+			return
+		}
+		_ = Handle(rw, r, func(*http.Request) (interface{}, error) { return filter, nil })
+	default:
+		SendError(rw, &Error{Code: http.StatusMethodNotAllowed, Message: "Method not allowed"})
+	}
+}
+
+func (api *Api) httpDeleteSavedFilter(rw http.ResponseWriter, r *http.Request) {
+	api.filterMu.Lock()
+	defer api.filterMu.Unlock()
+	id := mux.Vars(r)["id"]
+	filters, err := api.readFilters()
+	if err != nil {
+		SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to read saved filters"})
+		return
+	}
+	for i := range filters {
+		if filters[i].ID == id {
+			filters = append(filters[:i], filters[i+1:]...)
+			if err := api.writeFilters(filters); err != nil {
+				SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to save filters"})
+				return
+			}
+			NoContent(rw)
+			return
+		}
+	}
+	SendError(rw, &Error{Code: http.StatusNotFound, Message: "Filter not found"})
+}
+
+func (api *Api) httpUpdateSavedFilter(rw http.ResponseWriter, r *http.Request) {
+	api.filterMu.Lock()
+	defer api.filterMu.Unlock()
+	var settings SavedFilter
+	if err := json.NewDecoder(http.MaxBytesReader(rw, r.Body, 1<<20)).Decode(&settings); err != nil {
+		SendError(rw, &Error{Code: http.StatusBadRequest, Message: "Invalid filter settings"})
+		return
+	}
+	if settings.State == "" || settings.Sort == "" {
+		SendError(rw, &Error{Code: http.StatusBadRequest, Message: "Filter settings are required"})
+		return
+	}
+	filters, err := api.readFilters()
+	if err != nil {
+		SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to read saved filters"})
+		return
+	}
+	id := mux.Vars(r)["id"]
+	for index := range filters {
+		if filters[index].ID == id {
+			filters[index].State = settings.State
+			filters[index].Sort = settings.Sort
+			filters[index].Reverse = settings.Reverse
+			filters[index].LabelFilters = settings.LabelFilters
+			if filters[index].LabelFilters == nil {
+				filters[index].LabelFilters = map[string]int{}
+			}
+			if err := api.writeFilters(filters); err != nil {
+				SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to save filter"})
+				return
+			}
+			_ = Handle(rw, r, func(*http.Request) (interface{}, error) { return filters[index], nil })
+			return
+		}
+	}
+	SendError(rw, &Error{Code: http.StatusNotFound, Message: "Filter not found"})
 }
 
 func (api *Api) DelugeHandler(f DelugeMethod) http.HandlerFunc {
@@ -299,6 +464,10 @@ func (api *Api) bind(development bool) {
 		HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusNoContent)
 		})
+
+	apiRouter.HandleFunc("/filters", api.httpSavedFilters).Methods(http.MethodGet, http.MethodPost)
+	apiRouter.HandleFunc("/filters/{id}", api.httpDeleteSavedFilter).Methods(http.MethodDelete)
+	apiRouter.HandleFunc("/filters/{id}", api.httpUpdateSavedFilter).Methods(http.MethodPut)
 
 	apiRouter.
 		Methods(http.MethodGet).

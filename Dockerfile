@@ -26,9 +26,12 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /ou
 FROM alpine:3.21 AS runtime
 RUN apk add --no-cache ca-certificates \
     && addgroup -S storm \
-    && adduser -S -G storm storm
+    && adduser -S -G storm storm \
+    && mkdir -p /config \
+    && chown storm:storm /config
 COPY --from=backend /out/storm /usr/local/bin/storm
 
 USER storm
+ENV STORM_FILTERS_FILE=/config/filters.json
 EXPOSE 8221
 ENTRYPOINT ["/usr/local/bin/storm"]

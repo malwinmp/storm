@@ -20,64 +20,96 @@ export function TorrentToolbar({
   filtered,
   toggleView,
   openDialog,
+  savedFilters,
+  activeFilterId,
+  applySavedFilter,
+  deleteSavedFilter,
+  createSavedFilter,
+  hasActiveFilterChanges,
+  updateActiveFilter,
 }) {
   return (
     <header className="topbar">
-      <div className="brand">
-        <div className="brand-icon">
-          <Activity size={19} />
+      <div className="toolbar-layout">
+        <div className="toolbar-row toolbar-row-top">
+          <div className="brand">
+            <div className="brand-icon">
+              <Activity size={19} />
+            </div>
+            <span>storm</span>
+            <i>DELUGE WEB UI</i>
+          </div>
         </div>
-        <span>storm</span>
-        <i>DELUGE WEB UI</i>
-      </div>
-      <div className="header-actions">
-        <GlobalTorrentActions
-          state={state}
-          filtered={filtered}
-          labelFilters={labelFilters}
-          setLabelFilters={setLabelFilters}
-          toggleView={toggleView}
-          openDialog={openDialog}
-        />
-        <span className="toolbar-separator" />
-        <TorrentSearch search={search} setSearch={setSearch} />
-        <span className="toolbar-separator" />
-        <DropdownMenu
-          label="Sort torrents"
-          icon={ArrowDownUp}
-          options={Object.entries(sorts).map(([value, label]) => ({
-            value,
-            label,
-          }))}
-          value={sort}
-          onChange={setSort}
-          className="sort-wrap"
-          after={
-            <button
-              type="button"
-              className="sort-direction"
-              title="Reverse sorting"
-              aria-label="Reverse sorting"
-              onClick={() => setReverse(!reverse)}
-            >
-              {reverse ? "↑" : "↓"}
-            </button>
-          }
-        />
-        <DropdownMenu
-          label="Filter by state"
-          icon={Filter}
-          options={states.map((value) => ({ value, label: value }))}
-          value={state}
-          onChange={setState}
-          className="filter-wrap"
-          count={filtered.length}
-        />
-        <LabelFilter
-          labelOptions={labelOptions}
-          labelFilters={labelFilters}
-          setLabelFilters={setLabelFilters}
-        />
+        <div className="toolbar-lower">
+          <div className="toolbar-row toolbar-row-actions">
+            <GlobalTorrentActions
+              state={state}
+              filtered={filtered}
+              toggleView={toggleView}
+              openDialog={openDialog}
+              savedFilters={savedFilters}
+              activeFilterId={activeFilterId}
+              applySavedFilter={applySavedFilter}
+              deleteSavedFilter={deleteSavedFilter}
+              createSavedFilter={createSavedFilter}
+              hasActiveFilterChanges={hasActiveFilterChanges}
+              updateActiveFilter={updateActiveFilter}
+              variant="actions"
+            />
+            <TorrentSearch search={search} setSearch={setSearch} />
+            <div className="toolbar-filter-group">
+              <DropdownMenu
+                label="Sort torrents"
+                icon={ArrowDownUp}
+                options={Object.entries(sorts).map(([value, label]) => ({ value, label }))}
+                value={sort}
+                onChange={setSort}
+                className="sort-wrap"
+                after={
+                  <button
+                    type="button"
+                    className="sort-direction"
+                    title="Reverse sorting"
+                    aria-label="Reverse sorting"
+                    onClick={() => setReverse(!reverse)}
+                  >
+                    {reverse ? "↑" : "↓"}
+                  </button>
+                }
+              />
+            </div>
+          </div>
+          <div className="toolbar-row toolbar-row-search">
+            <GlobalTorrentActions
+              state={state}
+              filtered={filtered}
+              toggleView={toggleView}
+              openDialog={openDialog}
+              savedFilters={savedFilters}
+              activeFilterId={activeFilterId}
+              applySavedFilter={applySavedFilter}
+              deleteSavedFilter={deleteSavedFilter}
+              createSavedFilter={createSavedFilter}
+              hasActiveFilterChanges={hasActiveFilterChanges}
+              updateActiveFilter={updateActiveFilter}
+              variant="utilities"
+            />
+            <DropdownMenu
+              label="Filter by state"
+              icon={Filter}
+              options={states.map((value) => ({ value, label: value }))}
+              value={state}
+              onChange={setState}
+              className="filter-wrap"
+              count={filtered.length}
+            />
+            <LabelFilter
+              labelOptions={labelOptions}
+              labelFilters={labelFilters}
+              setLabelFilters={setLabelFilters}
+            />
+          </div>
+        </div>
       </div>
     </header>
   );

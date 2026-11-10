@@ -15,18 +15,19 @@ export function TorrentToolbar({
   setSearch,
   sort,
   setSort,
-  reverse,
-  setReverse,
+  sortReverse,
+  setSortReverse,
   filtered,
   toggleView,
   openDialog,
-  savedFilters,
-  activeFilterId,
-  applySavedFilter,
-  deleteSavedFilter,
-  createSavedFilter,
-  hasActiveFilterChanges,
-  updateActiveFilter,
+  viewFilters,
+  activeViewFilterName,
+  applyViewFilter,
+  resetView,
+  deleteViewFilter,
+  createViewFilter,
+  canUpdateViewFilter,
+  updateActiveViewFilter,
 }) {
   return (
     <header className="topbar">
@@ -47,13 +48,14 @@ export function TorrentToolbar({
               filtered={filtered}
               toggleView={toggleView}
               openDialog={openDialog}
-              savedFilters={savedFilters}
-              activeFilterId={activeFilterId}
-              applySavedFilter={applySavedFilter}
-              deleteSavedFilter={deleteSavedFilter}
-              createSavedFilter={createSavedFilter}
-              hasActiveFilterChanges={hasActiveFilterChanges}
-              updateActiveFilter={updateActiveFilter}
+              viewFilters={viewFilters}
+              activeViewFilterName={activeViewFilterName}
+              applyViewFilter={applyViewFilter}
+              resetView={resetView}
+              deleteViewFilter={deleteViewFilter}
+              createViewFilter={createViewFilter}
+              canUpdateViewFilter={canUpdateViewFilter}
+              updateActiveViewFilter={updateActiveViewFilter}
               variant="actions"
             />
             <TorrentSearch search={search} setSearch={setSearch} />
@@ -71,9 +73,9 @@ export function TorrentToolbar({
                     className="sort-direction"
                     title="Reverse sorting"
                     aria-label="Reverse sorting"
-                    onClick={() => setReverse(!reverse)}
+                    onClick={() => setSortReverse(!sortReverse)}
                   >
-                    {reverse ? "↑" : "↓"}
+                    {sortReverse ? "↑" : "↓"}
                   </button>
                 }
               />
@@ -85,13 +87,14 @@ export function TorrentToolbar({
               filtered={filtered}
               toggleView={toggleView}
               openDialog={openDialog}
-              savedFilters={savedFilters}
-              activeFilterId={activeFilterId}
-              applySavedFilter={applySavedFilter}
-              deleteSavedFilter={deleteSavedFilter}
-              createSavedFilter={createSavedFilter}
-              hasActiveFilterChanges={hasActiveFilterChanges}
-              updateActiveFilter={updateActiveFilter}
+              viewFilters={viewFilters}
+              activeViewFilterName={activeViewFilterName}
+              applyViewFilter={applyViewFilter}
+              resetView={resetView}
+              deleteViewFilter={deleteViewFilter}
+              createViewFilter={createViewFilter}
+              canUpdateViewFilter={canUpdateViewFilter}
+              updateActiveViewFilter={updateActiveViewFilter}
               variant="utilities"
             />
             <DropdownMenu

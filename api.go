@@ -1,10 +1,8 @@
 package storm
 
 import (
-	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -65,34 +63,40 @@ type Api struct {
 	filterMu   sync.Mutex
 }
 
-type SavedFilter struct {
-	ID           string         `json:"id"`
+type ViewFilter struct {
 	Name         string         `json:"name"`
 	State        string         `json:"state"`
 	Sort         string         `json:"sort"`
-	Reverse      bool           `json:"reverse"`
+	SortReverse  bool           `json:"sortReverse"`
 	LabelFilters map[string]int `json:"labelFilters"`
 }
 
-func (api *Api) readFilters() ([]SavedFilter, error) {
+func (api *Api) readFilters() ([]ViewFilter, error) {
 	data, err := os.ReadFile(api.filterFile)
 	if os.IsNotExist(err) {
-		return []SavedFilter{}, nil
+		return []ViewFilter{}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	var filters []SavedFilter
+	var filters []ViewFilter
 	if err := json.Unmarshal(data, &filters); err != nil {
 		return nil, err
 	}
 	if filters == nil {
-		filters = []SavedFilter{}
+		filters = []ViewFilter{}
+	}
+	for i := range filters {
+		filters[i].Name = normalizeFilterName(filters[i].Name)
 	}
 	return filters, nil
 }
 
-func (api *Api) writeFilters(filters []SavedFilter) error {
+func normalizeFilterName(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
+}
+
+func (api *Api) writeFilters(filters []ViewFilter) error {
 	data, err := json.MarshalIndent(filters, "", "  ")
 	if err != nil {
 		return err
@@ -109,46 +113,40 @@ func (api *Api) writeFilters(filters []SavedFilter) error {
 	return os.Rename(tmp, api.filterFile)
 }
 
-func (api *Api) httpSavedFilters(rw http.ResponseWriter, r *http.Request) {
+func (api *Api) httpViewFilters(rw http.ResponseWriter, r *http.Request) {
 	api.filterMu.Lock()
 	defer api.filterMu.Unlock()
 	filters, err := api.readFilters()
 	if err != nil {
-		SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to read saved filters"})
+		SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to read view filters"})
 		return
 	}
 	switch r.Method {
 	case http.MethodGet:
 		_ = Handle(rw, r, func(*http.Request) (interface{}, error) { return filters, nil })
 	case http.MethodPost:
-		var filter SavedFilter
+		var filter ViewFilter
 		if err := json.NewDecoder(http.MaxBytesReader(rw, r.Body, 1<<20)).Decode(&filter); err != nil {
 			SendError(rw, &Error{Code: http.StatusBadRequest, Message: "Invalid filter"})
 			return
 		}
-		filter.Name = strings.TrimSpace(filter.Name)
+		filter.Name = normalizeFilterName(filter.Name)
 		if filter.Name == "" || filter.State == "" || filter.Sort == "" {
 			SendError(rw, &Error{Code: http.StatusBadRequest, Message: "Filter name and settings are required"})
 			return
 		}
 		for _, existing := range filters {
-			if existing.Name == filter.Name {
-				SendError(rw, &Error{Code: http.StatusConflict, Message: "A filter with this name already exists"})
+			if normalizeFilterName(existing.Name) == filter.Name {
+				SendError(rw, &Error{Code: http.StatusConflict, Message: "A view filter with this name already exists"})
 				return
 			}
 		}
-		idBytes := make([]byte, 16)
-		if _, err := io.ReadFull(rand.Reader, idBytes); err != nil {
-			SendError(rw, err)
-			return
-		}
-		filter.ID = hex.EncodeToString(idBytes)
 		if filter.LabelFilters == nil {
 			filter.LabelFilters = map[string]int{}
 		}
 		filters = append(filters, filter)
 		if err := api.writeFilters(filters); err != nil {
-			SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to save filter"})
+			SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to save view filter"})
 			return
 		}
 		_ = Handle(rw, r, func(*http.Request) (interface{}, error) { return filter, nil })
@@ -157,20 +155,20 @@ func (api *Api) httpSavedFilters(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (api *Api) httpDeleteSavedFilter(rw http.ResponseWriter, r *http.Request) {
+func (api *Api) httpDeleteViewFilter(rw http.ResponseWriter, r *http.Request) {
 	api.filterMu.Lock()
 	defer api.filterMu.Unlock()
-	id := mux.Vars(r)["id"]
+	name := normalizeFilterName(mux.Vars(r)["name"])
 	filters, err := api.readFilters()
 	if err != nil {
-		SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to read saved filters"})
+		SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to read view filters"})
 		return
 	}
 	for i := range filters {
-		if filters[i].ID == id {
+		if filters[i].Name == name {
 			filters = append(filters[:i], filters[i+1:]...)
 			if err := api.writeFilters(filters); err != nil {
-				SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to save filters"})
+				SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to save view filters"})
 				return
 			}
 			NoContent(rw)
@@ -180,10 +178,10 @@ func (api *Api) httpDeleteSavedFilter(rw http.ResponseWriter, r *http.Request) {
 	SendError(rw, &Error{Code: http.StatusNotFound, Message: "Filter not found"})
 }
 
-func (api *Api) httpUpdateSavedFilter(rw http.ResponseWriter, r *http.Request) {
+func (api *Api) httpUpdateViewFilter(rw http.ResponseWriter, r *http.Request) {
 	api.filterMu.Lock()
 	defer api.filterMu.Unlock()
-	var settings SavedFilter
+	var settings ViewFilter
 	if err := json.NewDecoder(http.MaxBytesReader(rw, r.Body, 1<<20)).Decode(&settings); err != nil {
 		SendError(rw, &Error{Code: http.StatusBadRequest, Message: "Invalid filter settings"})
 		return
@@ -194,21 +192,21 @@ func (api *Api) httpUpdateSavedFilter(rw http.ResponseWriter, r *http.Request) {
 	}
 	filters, err := api.readFilters()
 	if err != nil {
-		SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to read saved filters"})
+		SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to read view filters"})
 		return
 	}
-	id := mux.Vars(r)["id"]
+	name := normalizeFilterName(mux.Vars(r)["name"])
 	for index := range filters {
-		if filters[index].ID == id {
+		if filters[index].Name == name {
 			filters[index].State = settings.State
 			filters[index].Sort = settings.Sort
-			filters[index].Reverse = settings.Reverse
+			filters[index].SortReverse = settings.SortReverse
 			filters[index].LabelFilters = settings.LabelFilters
 			if filters[index].LabelFilters == nil {
 				filters[index].LabelFilters = map[string]int{}
 			}
 			if err := api.writeFilters(filters); err != nil {
-				SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to save filter"})
+				SendError(rw, &Error{Code: http.StatusInternalServerError, Message: "Failed to save view filter"})
 				return
 			}
 			_ = Handle(rw, r, func(*http.Request) (interface{}, error) { return filters[index], nil })
@@ -465,9 +463,9 @@ func (api *Api) bind(development bool) {
 			rw.WriteHeader(http.StatusNoContent)
 		})
 
-	apiRouter.HandleFunc("/filters", api.httpSavedFilters).Methods(http.MethodGet, http.MethodPost)
-	apiRouter.HandleFunc("/filters/{id}", api.httpDeleteSavedFilter).Methods(http.MethodDelete)
-	apiRouter.HandleFunc("/filters/{id}", api.httpUpdateSavedFilter).Methods(http.MethodPut)
+	apiRouter.HandleFunc("/view-filters", api.httpViewFilters).Methods(http.MethodGet, http.MethodPost)
+	apiRouter.HandleFunc("/view-filters/{name}", api.httpDeleteViewFilter).Methods(http.MethodDelete)
+	apiRouter.HandleFunc("/view-filters/{name}", api.httpUpdateViewFilter).Methods(http.MethodPut)
 
 	apiRouter.
 		Methods(http.MethodGet).

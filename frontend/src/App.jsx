@@ -6,12 +6,15 @@ import { TorrentListView } from "./components/TorrentListView.jsx";
 import { TorrentToolbar } from "./components/TorrentToolbar.jsx";
 import { useTorrentData } from "./hooks/useTorrentData.js";
 import { useTorrentFilters } from "./hooks/useTorrentFilters.js";
+import { useViewPreferences } from "./hooks/useViewPreferences.js";
 
 export function App() {
   const [dialog, setDialog] = useState(null);
   const [toast, setToast] = useState("");
-  const [savedFilters, setSavedFilters] = useState([]);
-  const [activeFilterId, setActiveFilterId] = useState("");
+  const [viewFilters, setViewFilters] = useState([]);
+  const [viewFiltersLoaded, setViewFiltersLoaded] = useState(false);
+  const [activeViewFilterName, setActiveViewFilterName] = useState("");
+  const [preferences, setPreferences] = useViewPreferences();
 
   const notice = useCallback((message) => {
     setToast(message);
@@ -19,75 +22,93 @@ export function App() {
   }, []);
 
   const { torrents, session, disk, connected, load } = useTorrentData(notice);
-  const filters = useTorrentFilters(torrents);
+  const filters = useTorrentFilters(torrents, preferences);
 
-  const loadSavedFilters = useCallback(async () => {
+  useEffect(() => {
+    setPreferences((current) => ({
+      ...current,
+      state: filters.state,
+      sort: filters.sort,
+      sortReverse: filters.sortReverse,
+      labelFilters: filters.labelFilters,
+    }));
+  }, [filters.state, filters.sort, filters.sortReverse, filters.labelFilters]);
+
+  const loadViewFilters = useCallback(async () => {
     try {
-      setSavedFilters((await call("filters")) || []);
+      setViewFilters((await call("view-filters")) || []);
+      setViewFiltersLoaded(true);
     } catch (error) {
       notice(error.message);
     }
   }, [notice]);
 
-  useEffect(() => { loadSavedFilters(); }, [loadSavedFilters]);
+  useEffect(() => { loadViewFilters(); }, [loadViewFilters]);
 
-  const applySavedFilter = (filter) => {
-    if (activeFilterId === filter.id) {
-      setActiveFilterId("");
-      filters.setState("All");
-      filters.setSort("TimeAdded");
-      filters.setReverse(true);
-      filters.setLabelFilters({});
-      return;
-    }
-    setActiveFilterId(filter.id);
+  useEffect(() => {
+    if (!viewFiltersLoaded || !activeViewFilterName) return;
+    const active = viewFilters.find(
+      (filter) => filter.name === activeViewFilterName,
+    );
+    if (!active) setActiveViewFilterName("");
+  }, [viewFiltersLoaded, viewFilters, activeViewFilterName]);
+
+  const applyViewFilter = (filter) => {
+    setActiveViewFilterName(filter.name);
     filters.setState(filter.state);
     filters.setSort(filter.sort);
-    filters.setReverse(filter.reverse);
+    filters.setSortReverse(filter.sortReverse);
     filters.setLabelFilters(filter.labelFilters || {});
   };
 
-  const activeSavedFilter = savedFilters.find((filter) => filter.id === activeFilterId);
+  const resetView = () => {
+    setActiveViewFilterName("");
+    filters.setState("All");
+    filters.setSort("TimeAdded");
+    filters.setSortReverse(true);
+    filters.setLabelFilters({});
+    filters.setSearch("");
+  };
+
   const normalizedLabels = (labels = {}) => Object.fromEntries(
     Object.entries(labels).filter(([, value]) => value === 1 || value === -1).sort(([a], [b]) => a.localeCompare(b)),
   );
-  const hasActiveFilterChanges = !!activeSavedFilter && JSON.stringify({
-    state: activeSavedFilter.state,
-    sort: activeSavedFilter.sort,
-    reverse: activeSavedFilter.reverse,
-    labelFilters: normalizedLabels(activeSavedFilter.labelFilters),
+  const hasViewFilterChanges = (viewFilter) => JSON.stringify({
+    state: viewFilter.state,
+    sort: viewFilter.sort,
+    sortReverse: viewFilter.sortReverse,
+    labelFilters: normalizedLabels(viewFilter.labelFilters),
   }) !== JSON.stringify({
     state: filters.state,
     sort: filters.sort,
-    reverse: filters.reverse,
+    sortReverse: filters.sortReverse,
     labelFilters: normalizedLabels(filters.labelFilters),
   });
-
-  const updateActiveFilter = async () => {
-    if (!activeSavedFilter || !hasActiveFilterChanges) return;
+  const updateActiveViewFilter = async (viewFilter) => {
+    if (!hasViewFilterChanges(viewFilter)) return;
     const settings = {
       state: filters.state,
       sort: filters.sort,
-      reverse: filters.reverse,
+      sortReverse: filters.sortReverse,
       labelFilters: normalizedLabels(filters.labelFilters),
     };
     try {
-      const updated = await call(`filters/${encodeURIComponent(activeSavedFilter.id)}`, {
+      const updated = await call(`view-filters/${encodeURIComponent(viewFilter.name)}`, {
         method: "PUT",
         body: JSON.stringify(settings),
       });
-      setSavedFilters((current) => current.map((filter) => filter.id === updated.id ? updated : filter));
-      notice("Saved filter updated");
+      setViewFilters((current) => current.map((filter) => filter.name === updated.name ? updated : filter));
+      notice("View filter updated");
     } catch (error) {
       notice(error.message);
     }
   };
 
-  const deleteSavedFilter = async (filter) => {
+  const deleteViewFilter = async (filter) => {
     try {
-      await call(`filters/${encodeURIComponent(filter.id)}`, { method: "DELETE" });
-      setSavedFilters((current) => current.filter((item) => item.id !== filter.id));
-      if (activeFilterId === filter.id) setActiveFilterId("");
+      await call(`view-filters/${encodeURIComponent(filter.name)}`, { method: "DELETE" });
+      setViewFilters((current) => current.filter((item) => item.name !== filter.name));
+      if (activeViewFilterName === filter.name) setActiveViewFilterName("");
     } catch (error) {
       notice(error.message);
     }
@@ -126,21 +147,22 @@ export function App() {
     );
 
   return (
-    <div className="app min-h-screen flex flex-col">
+    <div className="app">
       <TorrentToolbar
         {...filters}
         toggleView={toggleView}
         openDialog={setDialog}
-        savedFilters={savedFilters}
-        activeFilterId={activeFilterId}
-        applySavedFilter={applySavedFilter}
-        deleteSavedFilter={deleteSavedFilter}
-        createSavedFilter={() => setDialog({ type: "saved-filter", settings: {
-          state: filters.state, sort: filters.sort, reverse: filters.reverse,
+        viewFilters={viewFilters}
+        activeViewFilterName={activeViewFilterName}
+        applyViewFilter={applyViewFilter}
+        resetView={resetView}
+        deleteViewFilter={deleteViewFilter}
+        createViewFilter={() => setDialog({ type: "view-filter", settings: {
+          state: filters.state, sort: filters.sort, sortReverse: filters.sortReverse,
           labelFilters: filters.labelFilters,
         } })}
-        hasActiveFilterChanges={hasActiveFilterChanges}
-        updateActiveFilter={updateActiveFilter}
+        canUpdateViewFilter={hasViewFilterChanges}
+        updateActiveViewFilter={updateActiveViewFilter}
       />
       <TorrentListView
         torrents={torrents}
@@ -159,9 +181,9 @@ export function App() {
           close={() => setDialog(null)}
           act={action}
           load={load}
-          savedFilterCreated={(filter) => {
-            setSavedFilters((current) => [...current, filter]);
-            setActiveFilterId(filter.id);
+          viewFilterCreated={(filter) => {
+            setViewFilters((current) => [...current, filter]);
+            setActiveViewFilterName(filter.name);
           }}
         />
       )}

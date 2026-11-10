@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 
-export function useTorrentFilters(torrents) {
-  const [state, setState] = useState("All");
-  const [labelFilters, setLabelFilters] = useState({});
+export function useTorrentFilters(torrents, preferences) {
+  const [state, setState] = useState(preferences.state);
+  const [labelFilters, setLabelFilters] = useState(preferences.labelFilters);
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("TimeAdded");
-  const [reverse, setReverse] = useState(true);
+  const [sort, setSort] = useState(preferences.sort);
+  const [sortReverse, setSortReverse] = useState(preferences.sortReverse);
 
   const labelOptions = useMemo(() => {
     const unique = [
@@ -53,11 +53,11 @@ export function useTorrentFilters(torrents) {
         typeof leftValue === "string"
           ? String(leftValue).localeCompare(String(rightValue))
           : (leftValue || 0) - (rightValue || 0);
-      return reverse ? -comparison : comparison;
+      return sortReverse ? -comparison : comparison;
     });
 
     return visibleTorrents;
-  }, [torrents, search, sort, reverse, state, labelFilters]);
+  }, [torrents, search, sort, sortReverse, state, labelFilters]);
 
   return {
     state,
@@ -68,8 +68,8 @@ export function useTorrentFilters(torrents) {
     setSearch,
     sort,
     setSort,
-    reverse,
-    setReverse,
+    sortReverse,
+    setSortReverse,
     labelOptions,
     filtered,
   };

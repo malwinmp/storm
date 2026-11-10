@@ -151,14 +151,14 @@ export function DialogActions({
           Enable plugin
         </button>
       )}
-      {type === "saved-filter" && (
+      {type === "view-filter" && (
         <button className="primary" disabled={busy || !entry.trim()} onClick={() =>
-          run(() => call("filters", {
+          run(() => call("view-filters", {
             method: "POST",
             body: JSON.stringify({ name: entry.trim(), ...dialog.settings }),
           }))
         }>
-          {busy ? "Saving…" : "Save filter"}
+          {busy ? "Saving…" : "Save view filter"}
         </button>
       )}
     </div>

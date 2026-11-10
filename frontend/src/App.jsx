@@ -13,10 +13,8 @@ export function App() {
   const [toast, setToast] = useState("");
   const [viewFilters, setViewFilters] = useState([]);
   const [viewFiltersLoaded, setViewFiltersLoaded] = useState(false);
+  const [activeViewFilterName, setActiveViewFilterName] = useState("");
   const [preferences, setPreferences] = useViewPreferences();
-  const activeViewFilterName = preferences.activeViewFilterName;
-  const setActiveViewFilterName = (activeViewFilterName) =>
-    setPreferences((current) => ({ ...current, activeViewFilterName }));
 
   const notice = useCallback((message) => {
     setToast(message);
@@ -31,10 +29,10 @@ export function App() {
       ...current,
       state: filters.state,
       sort: filters.sort,
-      reverse: filters.reverse,
+      sortReverse: filters.sortReverse,
       labelFilters: filters.labelFilters,
     }));
-  }, [filters.state, filters.sort, filters.reverse, filters.labelFilters]);
+  }, [filters.state, filters.sort, filters.sortReverse, filters.labelFilters]);
 
   const loadViewFilters = useCallback(async () => {
     try {
@@ -48,55 +46,54 @@ export function App() {
   useEffect(() => { loadViewFilters(); }, [loadViewFilters]);
 
   useEffect(() => {
-    if (!viewFiltersLoaded || !preferences.activeViewFilterName) return;
+    if (!viewFiltersLoaded || !activeViewFilterName) return;
     const active = viewFilters.find(
-      (filter) => filter.name === preferences.activeViewFilterName,
+      (filter) => filter.name === activeViewFilterName,
     );
     if (!active) setActiveViewFilterName("");
-  }, [viewFiltersLoaded, viewFilters, preferences.activeViewFilterName]);
+  }, [viewFiltersLoaded, viewFilters, activeViewFilterName]);
 
   const applyViewFilter = (filter) => {
-    if (activeViewFilterName === filter.name) {
-      setActiveViewFilterName("");
-      filters.setState("All");
-      filters.setSort("TimeAdded");
-      filters.setReverse(true);
-      filters.setLabelFilters({});
-      return;
-    }
     setActiveViewFilterName(filter.name);
     filters.setState(filter.state);
     filters.setSort(filter.sort);
-    filters.setReverse(filter.reverse);
+    filters.setSortReverse(filter.sortReverse);
     filters.setLabelFilters(filter.labelFilters || {});
   };
 
-  const activeViewFilter = viewFilters.find((filter) => filter.name === activeViewFilterName);
+  const resetView = () => {
+    setActiveViewFilterName("");
+    filters.setState("All");
+    filters.setSort("TimeAdded");
+    filters.setSortReverse(true);
+    filters.setLabelFilters({});
+    filters.setSearch("");
+  };
+
   const normalizedLabels = (labels = {}) => Object.fromEntries(
     Object.entries(labels).filter(([, value]) => value === 1 || value === -1).sort(([a], [b]) => a.localeCompare(b)),
   );
-  const hasActiveViewFilterChanges = !!activeViewFilter && JSON.stringify({
-    state: activeViewFilter.state,
-    sort: activeViewFilter.sort,
-    reverse: activeViewFilter.reverse,
-    labelFilters: normalizedLabels(activeViewFilter.labelFilters),
+  const hasViewFilterChanges = (viewFilter) => JSON.stringify({
+    state: viewFilter.state,
+    sort: viewFilter.sort,
+    sortReverse: viewFilter.sortReverse,
+    labelFilters: normalizedLabels(viewFilter.labelFilters),
   }) !== JSON.stringify({
     state: filters.state,
     sort: filters.sort,
-    reverse: filters.reverse,
+    sortReverse: filters.sortReverse,
     labelFilters: normalizedLabels(filters.labelFilters),
   });
-
-  const updateActiveViewFilter = async () => {
-    if (!activeViewFilter || !hasActiveViewFilterChanges) return;
+  const updateActiveViewFilter = async (viewFilter) => {
+    if (!hasViewFilterChanges(viewFilter)) return;
     const settings = {
       state: filters.state,
       sort: filters.sort,
-      reverse: filters.reverse,
+      sortReverse: filters.sortReverse,
       labelFilters: normalizedLabels(filters.labelFilters),
     };
     try {
-      const updated = await call(`view-filters/${encodeURIComponent(activeViewFilter.name)}`, {
+      const updated = await call(`view-filters/${encodeURIComponent(viewFilter.name)}`, {
         method: "PUT",
         body: JSON.stringify(settings),
       });
@@ -150,7 +147,7 @@ export function App() {
     );
 
   return (
-    <div className="app min-h-screen flex flex-col">
+    <div className="app">
       <TorrentToolbar
         {...filters}
         toggleView={toggleView}
@@ -158,12 +155,13 @@ export function App() {
         viewFilters={viewFilters}
         activeViewFilterName={activeViewFilterName}
         applyViewFilter={applyViewFilter}
+        resetView={resetView}
         deleteViewFilter={deleteViewFilter}
         createViewFilter={() => setDialog({ type: "view-filter", settings: {
-          state: filters.state, sort: filters.sort, reverse: filters.reverse,
+          state: filters.state, sort: filters.sort, sortReverse: filters.sortReverse,
           labelFilters: filters.labelFilters,
         } })}
-        hasActiveViewFilterChanges={hasActiveViewFilterChanges}
+        canUpdateViewFilter={hasViewFilterChanges}
         updateActiveViewFilter={updateActiveViewFilter}
       />
       <TorrentListView

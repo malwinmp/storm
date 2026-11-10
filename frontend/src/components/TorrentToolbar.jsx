@@ -15,17 +15,18 @@ export function TorrentToolbar({
   setSearch,
   sort,
   setSort,
-  reverse,
-  setReverse,
+  sortReverse,
+  setSortReverse,
   filtered,
   toggleView,
   openDialog,
   viewFilters,
   activeViewFilterName,
   applyViewFilter,
+  resetView,
   deleteViewFilter,
   createViewFilter,
-  hasActiveViewFilterChanges,
+  canUpdateViewFilter,
   updateActiveViewFilter,
 }) {
   return (
@@ -50,9 +51,10 @@ export function TorrentToolbar({
               viewFilters={viewFilters}
               activeViewFilterName={activeViewFilterName}
               applyViewFilter={applyViewFilter}
+              resetView={resetView}
               deleteViewFilter={deleteViewFilter}
               createViewFilter={createViewFilter}
-              hasActiveViewFilterChanges={hasActiveViewFilterChanges}
+              canUpdateViewFilter={canUpdateViewFilter}
               updateActiveViewFilter={updateActiveViewFilter}
               variant="actions"
             />
@@ -71,9 +73,9 @@ export function TorrentToolbar({
                     className="sort-direction"
                     title="Reverse sorting"
                     aria-label="Reverse sorting"
-                    onClick={() => setReverse(!reverse)}
+                    onClick={() => setSortReverse(!sortReverse)}
                   >
-                    {reverse ? "↑" : "↓"}
+                    {sortReverse ? "↑" : "↓"}
                   </button>
                 }
               />
@@ -88,9 +90,10 @@ export function TorrentToolbar({
               viewFilters={viewFilters}
               activeViewFilterName={activeViewFilterName}
               applyViewFilter={applyViewFilter}
+              resetView={resetView}
               deleteViewFilter={deleteViewFilter}
               createViewFilter={createViewFilter}
-              hasActiveViewFilterChanges={hasActiveViewFilterChanges}
+              canUpdateViewFilter={canUpdateViewFilter}
               updateActiveViewFilter={updateActiveViewFilter}
               variant="utilities"
             />

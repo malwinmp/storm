@@ -5,7 +5,7 @@ export function useTorrentFilters(torrents, preferences) {
   const [labelFilters, setLabelFilters] = useState(preferences.labelFilters);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState(preferences.sort);
-  const [reverse, setReverse] = useState(preferences.reverse);
+  const [sortReverse, setSortReverse] = useState(preferences.sortReverse);
 
   const labelOptions = useMemo(() => {
     const unique = [
@@ -53,11 +53,11 @@ export function useTorrentFilters(torrents, preferences) {
         typeof leftValue === "string"
           ? String(leftValue).localeCompare(String(rightValue))
           : (leftValue || 0) - (rightValue || 0);
-      return reverse ? -comparison : comparison;
+      return sortReverse ? -comparison : comparison;
     });
 
     return visibleTorrents;
-  }, [torrents, search, sort, reverse, state, labelFilters]);
+  }, [torrents, search, sort, sortReverse, state, labelFilters]);
 
   return {
     state,
@@ -68,8 +68,8 @@ export function useTorrentFilters(torrents, preferences) {
     setSearch,
     sort,
     setSort,
-    reverse,
-    setReverse,
+    sortReverse,
+    setSortReverse,
     labelOptions,
     filtered,
   };

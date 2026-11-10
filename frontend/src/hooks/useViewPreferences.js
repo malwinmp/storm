@@ -6,24 +6,23 @@ const defaults = {
   state: "All",
   labelFilters: {},
   sort: "TimeAdded",
-  reverse: true,
-  activeViewFilterName: "",
+  sortReverse: true,
 };
 
 function readPreferences() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
     return {
-      ...defaults,
-      ...stored,
+      state: typeof stored.state === "string" ? stored.state : defaults.state,
+      sort: typeof stored.sort === "string" ? stored.sort : defaults.sort,
+      sortReverse:
+        typeof stored.sortReverse === "boolean"
+          ? stored.sortReverse
+          : defaults.sortReverse,
       labelFilters:
         stored.labelFilters && typeof stored.labelFilters === "object"
           ? stored.labelFilters
-          : {},
-      activeViewFilterName:
-        typeof (stored.activeViewFilterName ?? stored.activeFilterName) === "string"
-          ? (stored.activeViewFilterName ?? stored.activeFilterName)
-          : "",
+          : defaults.labelFilters,
     };
   } catch {
     return defaults;

@@ -1,4 +1,4 @@
-import { Pause, Play, Plus, Trash2 } from "lucide-react";
+import { Pause, Play, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { ViewFilterMenu } from "./ViewFilterMenu.jsx";
 
 export function GlobalTorrentActions({
@@ -9,9 +9,10 @@ export function GlobalTorrentActions({
   viewFilters,
   activeViewFilterName,
   applyViewFilter,
+  resetView,
   deleteViewFilter,
   createViewFilter,
-  hasActiveViewFilterChanges,
+  canUpdateViewFilter,
   updateActiveViewFilter,
   variant = "actions",
 }) {
@@ -49,7 +50,10 @@ export function GlobalTorrentActions({
       >
         <Trash2 size={17} />
       </button>
-      <ViewFilterMenu filters={viewFilters} activeName={activeViewFilterName} onApply={applyViewFilter} onDelete={deleteViewFilter} onCreate={createViewFilter} hasChanges={hasActiveViewFilterChanges} onUpdate={updateActiveViewFilter} />
+      <ViewFilterMenu filters={viewFilters} activeName={activeViewFilterName} onApply={applyViewFilter} onDelete={deleteViewFilter} onCreate={createViewFilter} canUpdate={canUpdateViewFilter} onUpdate={updateActiveViewFilter} />
+      <button className="icon-button" title="Reset view" aria-label="Reset view" onClick={resetView}>
+        <RotateCcw size={16} />
+      </button>
       </>}
     </div>
   );

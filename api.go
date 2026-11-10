@@ -67,7 +67,7 @@ type ViewFilter struct {
 	Name         string         `json:"name"`
 	State        string         `json:"state"`
 	Sort         string         `json:"sort"`
-	Reverse      bool           `json:"reverse"`
+	SortReverse  bool           `json:"sortReverse"`
 	LabelFilters map[string]int `json:"labelFilters"`
 }
 
@@ -137,7 +137,7 @@ func (api *Api) httpViewFilters(rw http.ResponseWriter, r *http.Request) {
 		}
 		for _, existing := range filters {
 			if normalizeFilterName(existing.Name) == filter.Name {
-			SendError(rw, &Error{Code: http.StatusConflict, Message: "A view filter with this name already exists"})
+				SendError(rw, &Error{Code: http.StatusConflict, Message: "A view filter with this name already exists"})
 				return
 			}
 		}
@@ -200,7 +200,7 @@ func (api *Api) httpUpdateViewFilter(rw http.ResponseWriter, r *http.Request) {
 		if filters[index].Name == name {
 			filters[index].State = settings.State
 			filters[index].Sort = settings.Sort
-			filters[index].Reverse = settings.Reverse
+			filters[index].SortReverse = settings.SortReverse
 			filters[index].LabelFilters = settings.LabelFilters
 			if filters[index].LabelFilters == nil {
 				filters[index].LabelFilters = map[string]int{}

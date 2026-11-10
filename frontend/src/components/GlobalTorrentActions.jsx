@@ -1,18 +1,18 @@
 import { Pause, Play, Plus, Trash2 } from "lucide-react";
-import { SavedFilterMenu } from "./SavedFilterMenu.jsx";
+import { ViewFilterMenu } from "./ViewFilterMenu.jsx";
 
 export function GlobalTorrentActions({
   state,
   filtered,
   toggleView,
   openDialog,
-  savedFilters,
-  activeFilterId,
-  applySavedFilter,
-  deleteSavedFilter,
-  createSavedFilter,
-  hasActiveFilterChanges,
-  updateActiveFilter,
+  viewFilters,
+  activeViewFilterName,
+  applyViewFilter,
+  deleteViewFilter,
+  createViewFilter,
+  hasActiveViewFilterChanges,
+  updateActiveViewFilter,
   variant = "actions",
 }) {
   return (
@@ -49,7 +49,7 @@ export function GlobalTorrentActions({
       >
         <Trash2 size={17} />
       </button>
-      <SavedFilterMenu filters={savedFilters} activeId={activeFilterId} onApply={applySavedFilter} onDelete={deleteSavedFilter} onCreate={createSavedFilter} hasChanges={hasActiveFilterChanges} onUpdate={updateActiveFilter} />
+      <ViewFilterMenu filters={viewFilters} activeName={activeViewFilterName} onApply={applyViewFilter} onDelete={deleteViewFilter} onCreate={createViewFilter} hasChanges={hasActiveViewFilterChanges} onUpdate={updateActiveViewFilter} />
       </>}
     </div>
   );

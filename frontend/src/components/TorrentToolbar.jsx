@@ -20,13 +20,13 @@ export function TorrentToolbar({
   filtered,
   toggleView,
   openDialog,
-  savedFilters,
-  activeFilterId,
-  applySavedFilter,
-  deleteSavedFilter,
-  createSavedFilter,
-  hasActiveFilterChanges,
-  updateActiveFilter,
+  viewFilters,
+  activeViewFilterName,
+  applyViewFilter,
+  deleteViewFilter,
+  createViewFilter,
+  hasActiveViewFilterChanges,
+  updateActiveViewFilter,
 }) {
   return (
     <header className="topbar">
@@ -47,13 +47,13 @@ export function TorrentToolbar({
               filtered={filtered}
               toggleView={toggleView}
               openDialog={openDialog}
-              savedFilters={savedFilters}
-              activeFilterId={activeFilterId}
-              applySavedFilter={applySavedFilter}
-              deleteSavedFilter={deleteSavedFilter}
-              createSavedFilter={createSavedFilter}
-              hasActiveFilterChanges={hasActiveFilterChanges}
-              updateActiveFilter={updateActiveFilter}
+              viewFilters={viewFilters}
+              activeViewFilterName={activeViewFilterName}
+              applyViewFilter={applyViewFilter}
+              deleteViewFilter={deleteViewFilter}
+              createViewFilter={createViewFilter}
+              hasActiveViewFilterChanges={hasActiveViewFilterChanges}
+              updateActiveViewFilter={updateActiveViewFilter}
               variant="actions"
             />
             <TorrentSearch search={search} setSearch={setSearch} />
@@ -85,13 +85,13 @@ export function TorrentToolbar({
               filtered={filtered}
               toggleView={toggleView}
               openDialog={openDialog}
-              savedFilters={savedFilters}
-              activeFilterId={activeFilterId}
-              applySavedFilter={applySavedFilter}
-              deleteSavedFilter={deleteSavedFilter}
-              createSavedFilter={createSavedFilter}
-              hasActiveFilterChanges={hasActiveFilterChanges}
-              updateActiveFilter={updateActiveFilter}
+              viewFilters={viewFilters}
+              activeViewFilterName={activeViewFilterName}
+              applyViewFilter={applyViewFilter}
+              deleteViewFilter={deleteViewFilter}
+              createViewFilter={createViewFilter}
+              hasActiveViewFilterChanges={hasActiveViewFilterChanges}
+              updateActiveViewFilter={updateActiveViewFilter}
               variant="utilities"
             />
             <DropdownMenu

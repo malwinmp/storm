@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 
-export function useTorrentFilters(torrents) {
-  const [state, setState] = useState("All");
-  const [labelFilters, setLabelFilters] = useState({});
+export function useTorrentFilters(torrents, preferences) {
+  const [state, setState] = useState(preferences.state);
+  const [labelFilters, setLabelFilters] = useState(preferences.labelFilters);
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("TimeAdded");
-  const [reverse, setReverse] = useState(true);
+  const [sort, setSort] = useState(preferences.sort);
+  const [reverse, setReverse] = useState(preferences.reverse);
 
   const labelOptions = useMemo(() => {
     const unique = [

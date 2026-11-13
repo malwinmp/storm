@@ -4,6 +4,7 @@ import {
   ArrowUp,
   Clock,
   FolderOpen,
+  Globe,
   HardDrive,
   Pause,
   Play,
@@ -39,11 +40,20 @@ export function TorrentCard({ t, open, act, reload, notice }) {
           <h2 title={t.Name}>{t.Name}</h2>
         </div>
         <div className="card-info-row">
-          <div className="badges">
+          <div className="card-meta-line">
             <span className={"state-badge " + pretty(t.State)}>
               <span />
               {t.State}
             </span>
+            <span
+              className="added-badge"
+              title="Time since this torrent was added"
+            >
+              <Clock size={11} />
+              Added {addedAgo(t.TimeAdded)}
+            </span>
+          </div>
+          <div className="card-meta-line">
             <button
               className="label-badge"
               onClick={async () => {
@@ -63,12 +73,9 @@ export function TorrentCard({ t, open, act, reload, notice }) {
               <Tag size={11} />
               {t.Label || "no label"}
             </button>
-            <span
-              className="added-badge"
-              title="Time since this torrent was added"
-            >
-              <Clock size={11} />
-              Added {addedAgo(t.TimeAdded)}
+            <span className="tracker-badge" title={t.TrackerHost || "No tracker"}>
+              <Globe size={11} />
+              <span>{t.TrackerHost || "No tracker"}</span>
             </span>
           </div>
         </div>

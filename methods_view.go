@@ -12,6 +12,7 @@ import (
 type ViewTorrent struct {
 	Hash                string
 	Label               string
+	TrackerHost         string
 	State               string
 	TrackerStatus       string
 	NextAnnounce        int64
@@ -56,7 +57,7 @@ type sessionStatusFieldClient interface {
 }
 
 var viewTorrentFields = []string{
-	"state", "tracker_status", "next_announce", "name", "total_size", "progress",
+	"state", "tracker_host", "tracker_status", "next_announce", "name", "total_size", "progress",
 	"eta", "download_payload_rate", "upload_payload_rate",
 	"total_uploaded", "all_time_download", "ratio", "seeding_time", "time_added", "label",
 }
@@ -95,6 +96,7 @@ func httpViewUpdate(conn deluge.DelugeClient, r *http.Request) (interface{}, err
 		responseTorrents = append(responseTorrents, &ViewTorrent{
 			Hash:                k,
 			Label:               torrent.Label,
+			TrackerHost:         torrent.TrackerHost,
 			State:               torrent.State,
 			TrackerStatus:       torrent.TrackerStatus,
 			NextAnnounce:        torrent.NextAnnounce,
